@@ -16,7 +16,7 @@ we are creating two versions: one with using stopwords and one without. It is li
 (using: clap)
 We gonna use command line, cause thanks to Peter now we know that apparently there are shit ton of pluses in doing that. *clap-clap*
 
-#Stage 3. Algorithms (main part)
+# Stage 3. Algorithms (main part)
 (using: scanlex for word tokenizer)
 -Trying to work with (uni – n)grams; here use both versions with StopWords and NoStopWords
 For big texts: splitting big novels in equal parts and assuming the same label for all of them.
