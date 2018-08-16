@@ -17,9 +17,10 @@ use ngrams::Ngram;
 
 extern crate select;
 use select::document::Document;
-use select::predicate::{Attr, Class, Name, Predicate};
+use std::io::Cursor;
+use select::predicate::{Name};
 
-//stage1: preprocessing
+//preprocessing - probs lets put it in separate file
 
 //function to identify type of the file. Returns String with: "html", "txt" or "other"
     fn type_of_file(filename: &str) -> &str{
@@ -33,14 +34,18 @@ use select::predicate::{Attr, Class, Name, Predicate};
         return "other";
     }
 }
+
 //function to extract p tags from html and make a text out of it
 //tests and stuff to work easier with a crate
 //https://github.com/utkarshkukreti/select.rs/blob/master/tests/node_tests.rs
 fn preprocess_html(filename: &str) -> String{
+    let mut f = File::open(filename).expect("file not found");
+    let document = Document::from_read(f);
+    assert!(document.is_ok());
     let mut text = String::from(" ");
-    let document = Document::from(include_str!(filename));
-    for p in document.find(Name("p")) {
+    for p in document.unwrap().find(Name("p")) {
         text = format!("{}", text.to_owned() + &p.text());
+        println!("{}", text);
     }
     return text;
     }
@@ -76,16 +81,24 @@ fn tokenize_text<'a>(text: &'a str) -> Vec<std::string::String>{
 //    return line;
 //}
 
-
-//main preprocessing function, where text is identified and True/False (stopwords) is in parameters
-
 //function to make ngrams out of everything
-//it is made on strings so far, im not sure will we need it or not and in which form
-//is there a need in word tokenizer then or could we just skip a step?
 fn make_ngrams<'a>(n: usize, text: &'a str) -> Vec<std::vec::Vec<&str>>{
     let mut ngrams: Vec<_> = text.split(' ').ngrams(n).collect();
     return ngrams;
 }
+
+//main preprocessing function, where text is identified and True/False (stopwords) is in parameters
+//fn preprocess(with_stopwords: bool, filename: &str) -> File{
+//    match type_of_file(filename){
+//        "txt" => preprocess_txt(filename),
+//        "html" => preprocess_html(filename),
+//        "other" => println!("This type of file is not supported")
+//    }
+//    if with_stopwords==False{
+//        //remove_stopwords()
+//    }
+//}
+
 
 fn main() {
     println!("Rust project created!");
@@ -99,7 +112,7 @@ fn main() {
     //remove_stopwords
     //tokenize text
     assert_eq!(tokenize_text("??? who are! (CAT)))"),&["who","are","CAT"]);
-    preprocess_html("Arrangement.html");
-
+    let s = preprocess_html("Arrangement.html");
+    println!("{}", s);
 
 }
