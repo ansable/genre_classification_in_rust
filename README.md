@@ -4,6 +4,7 @@
   - Separate to train and test
   - **Status**: Horror and romance are to be done
   - **Problems**: too old texts. **Propossed solution**: using fanfiction in specific genres to make text less old.
+  - **Possible addition**: mismatch learning?
 
 
 # Stage 2. Preprocessing (I propose to do a separate file or class with it)
@@ -12,11 +13,11 @@
   - 1. Txt -> move to txt_preprocessing function. Afterwards -> to tokenizer (here we have two options, about it later). 
   - 2. Html -> html-preprocessing; tokenizer;
   - 3. other -> error message.
-  - *html-preprocessing* (**return is correct, but method heading should be fixed**)
+  - *html-preprocessing* (**works**)
   - *txt-preprocessing* (**have to decide on our strategy. Proposing grep?**)
   - *stopwords* (**idk why but this shit doesn't work**)
-  - *tokenize_text* (**works, using scanlex**)
-  - *make_ngrams* (**works, using ngrams. I like it slightly more than scanlex now**)
+  - *tokenize_text* (**works**)
+  - *make_ngrams* (**works**)
 
 # Stage 2.5. Command line
 (using: clap)
