@@ -15,8 +15,8 @@
   - 3. other -> error message.
   - *type_of_document* (**works**) - its very basic, so we could do without it. I like it aesthetically though.
   - *html-preprocessing* (**works**)
-  - *txt-preprocessing* (**have to decide on our strategy. Proposing grep?**)
-  - *stopwords* (**idk why but this shit doesn't work**)
+  - *txt-preprocessing* (**have to decide on our strategy. Proposing grep? in work**)
+  - *stopwords* (**works**) - but i just realized that i apply it on strings and we will apply it on tokenized text, should be easy fix
   - *tokenize_text* (**works**)
   - *make_ngrams* (**works**)
 
