@@ -45,7 +45,7 @@ fn preprocess_html(filename: &str) -> String{
     let mut text = String::from(" ");
     for p in document.unwrap().find(Name("p")) {
         text = format!("{}", text.to_owned() + &p.text());
-        println!("{}", text);
+        //println!("{}", text);
     }
     return text;
     }
@@ -75,11 +75,12 @@ fn tokenize_text<'a>(text: &'a str) -> Vec<std::string::String>{
 
 
 //function to apply stopwords
-//fn remove_stopwords(line: String) -> std::string::String{
-//    let stopwords: HashSet<_> = Spark::stopwords(Language::English).unwrap().iter().collect();
-//    line.retain(|s| !stopwords.contains(s));
-//    return line;
-//}
+fn remove_stopwords(line: &str) -> std::vec::Vec<&str>{
+    let stopwords: HashSet<_> = Spark::stopwords(Language::English).unwrap().iter().collect();
+    let mut txt: Vec<&str> = line.split(" ").collect();
+    txt.retain(|s| !stopwords.contains(s));
+    return txt;
+}
 
 //function to make ngrams out of everything
 fn make_ngrams<'a>(n: usize, text: &'a str) -> Vec<std::vec::Vec<&str>>{
@@ -89,7 +90,7 @@ fn make_ngrams<'a>(n: usize, text: &'a str) -> Vec<std::vec::Vec<&str>>{
 
 //main preprocessing function, where text is identified and True/False (stopwords) is in parameters
 //fn preprocess(with_stopwords: bool, filename: &str) -> File{
-//    match type_of_file(filename){
+//let result     match type_of_file(filename){
 //        "txt" => preprocess_txt(filename),
 //        "html" => preprocess_html(filename),
 //        "other" => println!("This type of file is not supported")
@@ -110,9 +111,10 @@ fn main() {
     assert_eq!(type_of_file("marko.html"), "html");
     assert_eq!(type_of_file("anna is more than a file"), "other");
     //remove_stopwords
+    assert_eq!(remove_stopwords("a house tired is"),&["house","tired"]);
     //tokenize text
     assert_eq!(tokenize_text("??? who are! (CAT)))"),&["who","are","CAT"]);
-    let s = preprocess_html("Arrangement.html");
-    println!("{}", s);
+//    let s = preprocess_html("Arrangement.html");
+//    println!("{}", s);
 
 }
