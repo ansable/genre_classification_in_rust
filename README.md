@@ -13,6 +13,7 @@
   - 1. Txt -> move to txt_preprocessing function. Afterwards -> to tokenizer (here we have two options, about it later). 
   - 2. Html -> html-preprocessing; tokenizer;
   - 3. other -> error message.
+  - *type_of_document* (**works**) - its very basic, so we could do without it. I like it aesthetically though.
   - *html-preprocessing* (**works**)
   - *txt-preprocessing* (**have to decide on our strategy. Proposing grep?**)
   - *stopwords* (**idk why but this shit doesn't work**)
