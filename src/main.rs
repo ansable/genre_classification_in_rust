@@ -14,6 +14,7 @@ use  scanlex::{Scanner,Token};
 extern crate ngrams;
 use ngrams::Ngram;
 
+
 extern crate select;
 use select::document::Document;
 use select::predicate::{Attr, Class, Name, Predicate};
@@ -33,28 +34,22 @@ use select::predicate::{Attr, Class, Name, Predicate};
     }
 }
 //function to extract p tags from html and make a text out of it
-fn preprocess_html(filename: &str){
-    let mut text = "";
-    let document = Document::from(include_str!("Arrangement.html"));
+//tests and stuff to work easier with a crate
+//https://github.com/utkarshkukreti/select.rs/blob/master/tests/node_tests.rs
+fn preprocess_html(filename: &str) -> String{
+    let mut text = String::from(" ");
+    let document = Document::from(include_str!(filename));
     for p in document.find(Name("p")) {
-        text = text.to_owned().push_str(p.text());
-        println!("{}",text);
+        text = format!("{}", text.to_owned() + &p.text());
     }
-
+    return text;
     }
-//        find(Class("userstuff")) {
-//        println!("{} ({:?})", node.text(),node.attr("p").unwrap());
-//    }
 
 
 //function to remove stuff from txt
-//dunno yet good way of removing stuff except straightforward one
-//but like it scares me how many times we will have to go through texts then
-//maybe lets just hope that tf idf will take care of it?
-//Maybe lets use GREP here?
-//if we will create a text file with all relevant gutenberg shit
-// we can just use grep on the content
-//maybe with regex its gonna be faster
+//not finished: it's just reading text so far
+//reason: seems like very unproductive
+//idea: use grep? don't do preprocessing for txt at all?
 fn preprocess_txt(filename: &str) ->  Result<(), std::io::Error> {
     let input = File::open(filename).expect("Could not open settings file");
     let buffered = BufReader::new(input);
