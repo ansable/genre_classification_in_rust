@@ -1,16 +1,22 @@
-# Stage 1 (Anna)
+# Stage 1 (Anna - in process)
 
   - Collecting Corpora. (6 genres, 100 texts each, except romantic literature: but amount of texts aligned with other genres)
   - Separate to train and test
   - **Status**: Horror and romance are to be done
+  - **Problems**: too old texts. **Propossed solution**: using fanfiction in specific genres to make text less old.
 
 
-# Stage 2. Preprocessing
+# Stage 2. Preprocessing (I propose to do a separate file or class with it)
 
-  - We have texts in html (erotica) and txt (other ones) formats. Good thing that all txt texts are the same: they gonna have some kind of project gutenberg information. Probably it will make sense to remove it in preprocessing (even though tf idf will take care of it, but what if we would use it on another text corpora eventually?)
-  - html – using type of soup to make everything equally preprocessed and txt.
-  - (Using in this part: nltk stopwords)
-we are creating two versions: one with using stopwords and one without. It is like an optional function. 
+  - *Main function* (**to-do**): combining all helper functions. You input there: true/false remove stopwords; it uses pattern match: go to three options: txt, html, other. 
+  - 1. Txt -> move to txt_preprocessing function. Afterwards -> to tokenizer (here we have two options, about it later). 
+  - 2. Html -> html-preprocessing; tokenizer;
+  - 3. other -> error message.
+  - *html-preprocessing* (**return is correct, but method heading should be fixed**)
+  - *txt-preprocessing* (**have to decide on our strategy. Proposing grep?**)
+  - *stopwords* (**idk why but this shit doesn't work**)
+  - *tokenize_text* (**works, using scanlex**)
+  - *make_ngrams* (**works, using ngrams. I like it slightly more than scanlex now**)
 
 # Stage 2.5. Command line
 (using: clap)
