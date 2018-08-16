@@ -9,7 +9,7 @@
 
 # Stage 2. Preprocessing (I propose to do a separate file or class with it)
 
-  - *Main function* (**to-do**): combining all helper functions. You input there: true/false remove stopwords; it uses pattern match: go to three options: txt, html, other. 
+  - *Main function* (**half-done**): combining all helper functions. You input there: true/false remove stopwords; it uses pattern match: go to three options: txt, html, other. 
   - 1. Txt -> move to txt_preprocessing function. Afterwards -> to tokenizer (here we have two options, about it later). 
   - 2. Html -> html-preprocessing; tokenizer;
   - 3. other -> error message.
