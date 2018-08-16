@@ -1,7 +1,7 @@
 # Stage 1 (Anna - in process)
 
   - Collecting Corpora. (6 genres, 100 texts each, except romantic literature: but amount of texts aligned with other genres)
-  - Separate to train and test
+  - Separate to train and test (do we need dev?)
   - **Status**: Horror and romance are to be done
   - **Problems**: too old texts. **Propossed solution**: using fanfiction in specific genres to make text less old.
   - **Possible addition**: mismatch learning?
