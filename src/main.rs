@@ -89,16 +89,14 @@ fn make_ngrams<'a>(n: usize, text: &'a str) -> Vec<std::vec::Vec<&str>>{
 }
 
 //main preprocessing function, where text is identified and True/False (stopwords) is in parameters
-//fn preprocess(with_stopwords: bool, filename: &str) -> File{
-//let result     match type_of_file(filename){
-//        "txt" => preprocess_txt(filename),
-//        "html" => preprocess_html(filename),
-//        "other" => println!("This type of file is not supported")
-//    }
-//    if with_stopwords==False{
-//        //remove_stopwords()
-//    }
-//}
+fn preprocess(with_stopwords: bool, filename: &str) -> Vec<std::string::String>{
+    let mut result= match type_of_file(filename){
+        "txt" => panic!("shoudnt be here"),
+        "html" => tokenize_text(&preprocess_html(filename)),
+        "other" => panic!("Smth wrong"),
+         _ => panic!("eh")};
+    return result;
+}
 
 
 fn main() {
@@ -116,5 +114,7 @@ fn main() {
     assert_eq!(tokenize_text("??? who are! (CAT)))"),&["who","are","CAT"]);
 //    let s = preprocess_html("Arrangement.html");
 //    println!("{}", s);
+    let s = preprocess(false,"Arrangement.html");
+    println!("{:?}", s);
 
 }
