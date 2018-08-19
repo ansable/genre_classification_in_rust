@@ -2,7 +2,7 @@
 //to understand what comes from what
 //TODO: order them afterwards according common sense
 use std::fs::File;
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, Write, Read};
 //imports for stopwords function
 extern crate stopwords;
 use std::collections::HashSet;
@@ -47,18 +47,13 @@ fn preprocess_html(filename: &str) -> String {
     return text;
 }
 
-//function to remove stuff from txt
-//not finished: it's just reading text so far
-//reason: seems like very unproductive
-//idea: use grep? don't do preprocessing for txt at all?
-fn preprocess_txt(filename: &str) -> Result<(), std::io::Error> {
-    let input = File::open(filename).expect("Could not open settings file");
-    let buffered = BufReader::new(input);
-    for line in buffered.lines() {
-        println!("{}", line?);
-    }
-
-    Ok(())
+// Takes file as argument, returns its contents as a list (vector) of tokens
+fn read_file(filename: &str) -> Result<Vec<std::string::String>, std::io::Error> {
+    let mut file = File::open(filename).expect("Could not open file");
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).expect("Error encountered while processing file");
+    
+    return Ok(tokenize_text(&contents));
 }
 
 //function to tokenize text, using word tokenize
