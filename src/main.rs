@@ -1,12 +1,12 @@
-extern crate stopwords;
+extern crate scanlex;
 extern crate select;
-
+extern crate stopwords;
 
 mod preprocessing;
 use preprocessing::preprocess_file;
+use preprocessing::tokenize_text;
 
 fn main() {
-
     // Tests here for now TODO delete them
     // type_of_the_function
     // assert_eq!(type_of_file("james.txt"), "txt");
@@ -19,7 +19,7 @@ fn main() {
 
     let lion = &preprocess_file(false, "train/a_lion.txt");
     println!("{:?}", lion);
-    
+
     let baby = &preprocess_file(false, "train/baby.html");
     println!("{:?}", baby);
 }

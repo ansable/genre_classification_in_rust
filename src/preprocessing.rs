@@ -3,7 +3,7 @@
 //TODO: order them afterwards according common sense
 use std;
 use std::fs::File;
-use std::io::{Read};
+use std::io::Read;
 
 extern crate scanlex;
 //use scanlex::{Scanner, Token};
@@ -11,6 +11,7 @@ extern crate scanlex;
 use std::collections::HashSet;
 use stopwords::{Language, Spark, Stopwords};
 
+extern crate ngrams;
 //use ngrams::Ngram;
 
 use select::document::Document;
@@ -45,20 +46,22 @@ fn read_html_file(filename: &str) -> Result<Vec<std::string::String>, std::io::E
 fn read_txt_file(filename: &str) -> Result<Vec<std::string::String>, std::io::Error> {
     let mut file = File::open(filename).expect("Could not open file");
     let mut contents = String::new();
-    file.read_to_string(&mut contents).expect("Error encountered while processing file");
-    
+    file.read_to_string(&mut contents)
+        .expect("Error encountered while processing file");
+
     return Ok(tokenize_text(&contents));
 }
 
-//function to tokenize text, using word tokenize
-fn tokenize_text<'a>(text: &'a str) -> Vec<std::string::String> {
-    let tokenized_text: Vec<_> = scanlex::Scanner::new(text)
+// function to tokenize text
+pub fn tokenize_text<'a>(text: &'a str) -> Vec<std::string::String> {
+    let result = str::replace(text, "'", " "); // scanlex crashes and burns upon encountering apostrophes
+
+    return scanlex::Scanner::new(&result)
         .filter_map(|t| t.to_iden())
         .collect();
-    return tokenized_text;
 }
 
-//function to apply stopwords
+// function to apply stopwords
 fn remove_stopwords(line: &str) -> std::vec::Vec<&str> {
     let stopwords: HashSet<_> = Spark::stopwords(Language::English)
         .unwrap()
