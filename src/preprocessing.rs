@@ -75,7 +75,7 @@ pub fn tokenize_text<'a>(text: &'a str, mut vocab: Vec<std::string::String>) -> 
             if !vocab.contains(&current_word) {
                 vocab.push(current_word);
             }
-        }
+        }   
     }
     (tokens, vocab)
 }
@@ -103,5 +103,5 @@ pub fn preprocess_file(with_stopwords: bool, filename: &str, mut vocab: Vec<std:
         "txt" => read_txt_file(filename, vocab).unwrap(),
         "html" => read_html_file(filename, vocab).unwrap(),
         _ => panic!("Unknown file type encountered!"),
-    }
-}
+    
+}}
