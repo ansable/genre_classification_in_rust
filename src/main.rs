@@ -2,6 +2,9 @@ extern crate scanlex;
 extern crate select;
 extern crate stopwords;
 
+#[macro_use]
+extern crate lazy_static;
+
 use std::fs;
 use std::collections::HashMap;
 
@@ -14,18 +17,13 @@ use preprocessing::tokenize_text;
 //     let train_dir = fs::read_dir("./train").unwrap();
 
 //     let mut vocab = HashMap::new();
-
-//     let mut count = 0usize;
-
 //     for train_file in train_dir {
-//         count +=1;
-//         println!("{:?}", &train_file);
 //         for token in preprocess_file(false, train_file.unwrap().path().to_str().unwrap()) {
-//         println!("{:?}", count);
 //             if !vocab.contains_key(&token) {
 //                 vocab.insert(token, 0);
 //             }
 //         }
+//         println!("{:?}", vocab);
 //     }
 //     vocab
 // }
@@ -40,13 +38,13 @@ fn main() {
     // tokenize text
     // assert_eq!(tokenize_text("??? who are! (CAT)))"),&["who", "are", "CAT"]);
 
+    let mut vocab = vec![];
 
-
-    let lion = &preprocess_file(false, "train/ghost_of_alive.txt");
+    let lion = &preprocess_file(false, "train/ghost_of_alive.txt", vocab);
     println!("{:?}", lion);
 
-    let baby = &preprocess_file(false, "train/A Final Warning.html");
-    println!("{:?}", baby);
+    // let baby = &preprocess_file(false, "train/A Final Warning.html", vocab);
+    // println!("{:?}", baby);
 
     // let vocab = build_vocab("./train");
 
