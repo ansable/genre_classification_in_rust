@@ -2,12 +2,35 @@ extern crate scanlex;
 extern crate select;
 extern crate stopwords;
 
+use std::fs;
+use std::collections::HashMap;
+
 mod preprocessing;
 use preprocessing::preprocess_file;
 use preprocessing::tokenize_text;
 
+// function to build empty hashmap with all words that appear in vocabulary
+// fn build_vocab(train_directory: &str) -> HashMap<std::string::String, usize> {
+//     let train_dir = fs::read_dir("./train").unwrap();
+
+//     let mut vocab = HashMap::new();
+
+//     let mut count = 0usize;
+
+//     for train_file in train_dir {
+//         count +=1;
+//         println!("{:?}", &train_file);
+//         for token in preprocess_file(false, train_file.unwrap().path().to_str().unwrap()) {
+//         println!("{:?}", count);
+//             if !vocab.contains_key(&token) {
+//                 vocab.insert(token, 0);
+//             }
+//         }
+//     }
+//     vocab
+// }
+
 fn main() {
-    // Tests here for now TODO delete them
     // type_of_the_function
     // assert_eq!(type_of_file("james.txt"), "txt");
     // assert_eq!(type_of_file("marko.html"), "html");
@@ -17,9 +40,15 @@ fn main() {
     // tokenize text
     // assert_eq!(tokenize_text("??? who are! (CAT)))"),&["who", "are", "CAT"]);
 
-    let lion = &preprocess_file(false, "train/a_lion.txt");
+
+
+    let lion = &preprocess_file(false, "train/ghost_of_alive.txt");
     println!("{:?}", lion);
 
-    let baby = &preprocess_file(false, "train/baby.html");
+    let baby = &preprocess_file(false, "train/A Final Warning.html");
     println!("{:?}", baby);
+
+    // let vocab = build_vocab("./train");
+
+    // println!("{:?}", vocab);
 }
