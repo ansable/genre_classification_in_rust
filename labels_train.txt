@@ -1,15 +1,25 @@
 A Dark Alley and a Bad Idea.html detective
 A Final Warning.html horror
+A Mermaids Kiss.html romance
+A Self Fulfilling Prophecy.html romance
+A Time for Everything.html romance
 a_ghost_story.txt detective
 a_lion.txt detective
 a_lost_day.txt detective
 a_thing_that.txt detective
+Abduction.html romance
 adventure_of_.txt detective
 adventures_of_sherlock_holmes.txt detective
+After Every Happy.html romance
+age_of_innocence.txt romance
 Alazon noir.html detective
 An Ill Wind.html horror
 An Unkindness of Ravens.html horror
 angel_of_terror.txt detective
+ann_veronica.txt romance
+anna_karenina.txt romance
+another_giantic_book.txt romance
+Autumn Leaves.html romance
 baby.html horror
 balzak.txt detective
 Basement.html horror
@@ -105,28 +115,41 @@ greek_interpr.txt detective
 hand.txt horror
 hand_in_the_dark.txt detective
 Heated Fervor.html erotica
+Hi My Name is Daniel.html romance
 Hooked.html erotica
 horror.txt horror
 Hot and Cold.html erotica
 How to skip boring politics.html erotica
+hum.txt romance
+I Dont Know Yet.html romance
 I Had a Few Got Drunk on.html erotica
 I stare at my reflection.html horror
+If Time Could Stop.html romance
 In A Manner of Speaking.html erotica
 in boxes.html horror
 In the Citadel.html erotica
 In the Teeth of the Storm.html horror
+in this question mark of.html romance
 in which everything remains.html erotica
 insantity.txt horror
 Interrogation.html erotica
+Is invisible to the eye.html romance
 It was Late Summer when it.html horror
+Junior.html romance
+Just there.html romance
+kate_2.txt romance
+kate_v_1.txt romance
 king.txt horror
+Kiss.html romance
 Kitten Of Mine.html erotica
 Kitty PrydeLockheed Earth616.html erotica
+Know Your Enemy.html romance
 lady.txt horror
 Last Blessing.html horror
 Lavender Baths.html erotica
 leather.txt horror
 Leaves Falling.html horror
+leaves.txt romance
 Let Me Out.html horror
 Locked in.html erotica
 lost amp found.html horror
@@ -135,31 +158,51 @@ Love Me Back To Life.html erotica
 Love Unlawful Men Alike.html erotica
 Make Me Yours.html erotica
 Makes Me Want Him More.html erotica
+mansfield_park.txt romance
 Marco.html horror
 Meetcute.html erotica
 Midnight Snacc.html erotica
 misfit.txt horror
+Miss Ah Harnett.html romance
 monkey.txt horror
 Moonlight Swim.html erotica
+moonshine.txt romance
 more satisfying than bubble.html horror
+more_fairy.txt romance
 Mother.html horror
 My baby sisters best friend.html horror
 mysteries_of_udolfo.txt horror
+nat.txt romance
 Need You Now.html erotica
+Never Expected It To Be You.html romance
 Never On A Sunday.html erotica
+night_and_day.txt romance
+nonsense.txt romance
+nothanger_abbey.txt romance
 One Evening.html erotica
+One was silver the other.html romance
+only_a_girls_love.txt romance
+Organized Chaos.html romance
+passion.txt romance
+persuasion.txt romance
 Pierre Manganello.html detective
 pince.txt detective
 Please Spank Me.html erotica
 poison_belt.txt detective
 Possessions and Pets.html erotica
 Post Mission Pleasures.html erotica
+pride_and_pr.txt romance
+primadonna prom queen.html romance
+promise.txt romance
 puzzle.txt detective
+Rebirth.html romance
 Red on Me.html erotica
 red_circle.txt detective
 red_head_league.txt detective
+Resonance Forever.html romance
 Riding Hard.html erotica
 ritual.txt detective
+romantic_legends.txt romance
 Rookie Lady.html detective
 rope_of_fear.txt detective
 Routine.html erotica
@@ -168,19 +211,28 @@ scandal_in_bohemia.txt detective
 school.txt detective
 second_stain.txt detective
 Seeing Stars.html erotica
+sense_and_sensability.txt romance
+Several Destiny Combined.html romance
 silver_blaze.txt detective
 six_napoleons.txt detective
 smth.txt detective
 smthsmth.txt detective
 Soft.html erotica
+Sophomore Sweethearts.html romance
+Sort of Heroes.html romance
 Space Above and BeElfed.html erotica
 speckled_band.txt detective
+spirits.txt romance
+star_of_india.txt romance
 Starlight.html erotica
 Stay.html erotica
 Step Into My Office.html erotica
 tales_of_terros_.txt horror
+Tell Me How.html romance
 The 40th.html horror
 The Carnival.html horror
+The Caves of Arkehna.html romance
+The Chronicles of Denbar.html romance
 The Classical Killer.html detective
 The Curious Case of the Two.html detective
 The Egg.html horror
@@ -192,44 +244,62 @@ The Gift.html horror
 The Heist of the Estrella.html detective
 The Mind Of Another.html detective
 The Monster Underneath the.html horror
+The Most Glamorous Puzzle.html romance
+The Most Unlikely Mate.html romance
 The Room.html horror
 The Song.html horror
 The Storm.html horror
+The Truth About Cats and.html romance
 the truth untold.html detective
+the_cave.txt romance
 the_end_of_all.txt detective
+the_gnome.txt romance
+the_kiss.txt romance
 the_lost_world.txt detective
 the_man.txt horror
 the_man_who_find_out.txt horror
 the_necklace.txt detective
 the_only_girl.txt detective
+the_organist.txt romance
 the_return_of_sherlock_holmes.txt detective
 the_sign_of_four.txt detective
 the_valley_of_fear.txt detective
 these little things define.html horror
+three_dates.txt romance
 three_students.txt detective
+To All The Boys I LovedReddie.html romance
+To Truly Be Together.html romance
 torture_hope.txt detective
 TOT.html horror
 tragedy_of_high.txt detective
 unbidden_guest.txt horror
+Unlikely Perfection.html romance
+Untitled romance novel.html romance
 valley_mystery.txt detective
 vengenance.txt horror
 Victory Rounds.html erotica
 Voltron Legendary Defender.html erotica
 Vulnerable.html erotica
+Wait a minute Are you jealous.html romance
 Wanna bet.html erotica
+Wattpad High.html romance
 We Are Made Up of Our Mistakes.html detective
 We Had No Faces.html detective
 We The Consumed.html horror
 wendigo.txt horror
 What a gay assortment.html erotica
 Whats a Loki got to do to.html erotica
+white_smth.txt romance
 willows.txt horror
 Witch Dungeon.html horror
 With a Smile.html erotica
+wives_and_daughters.txt romance
+women_in_love.txt romance
 Wonder Lust and Reverence.html erotica
 work with your hands.html erotica
 Worship You.html erotica
 Worthy.html erotica
+wuthering_heights.txt romance
 yeah I think it was june.html erotica
 you got me going and i cant.html erotica
 You know the drill.html erotica
