@@ -15,6 +15,7 @@ extern crate ngrams;
 //use ngrams::Ngram;
 
 use select::document::Document;
+use select::predicate::Attr;
 use select::predicate::Name;
 
 // function to identify type of the file. Returns String with: "html", "txt" or "other"
@@ -35,9 +36,12 @@ fn read_html_file(filename: &str) -> Result<Vec<std::string::String>, std::io::E
     // type_of_file could have returned ".html" if the file were anything but ".txt"
     assert!(filename.contains(".html"), "File not HTML!");
     let mut text = String::from(" ");
-    for p in document.unwrap().find(Name("p")) {
-        text = format!("{}", text.to_owned() + &p.text());
-    }
+
+    for main_div in document.unwrap().find(Attr("id", "chapters")) {
+        for p in main_div.find(Name("p")) {
+            text = format!("{}", text.to_owned() + &p.first_child().unwrap().text());
+            }
+        }
 
     return Ok(tokenize_text(&text));
 }

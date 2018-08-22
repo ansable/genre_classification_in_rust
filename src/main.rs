@@ -36,7 +36,10 @@ fn build_vocab(train_directory: &str) -> (Vec<Vec<std::string::String>>, Vec<std
     (all_files, vocab)
 }
 
-fn get_counts(all_files: &Vec<Vec<std::string::String>>, vocab: Vec<std::string::String>) -> Vec<Vec<usize>> {
+fn get_counts(
+    all_files: &Vec<Vec<std::string::String>>,
+    vocab: Vec<std::string::String>,
+) -> Vec<Vec<usize>> {
     let mut all_counts: Vec<Vec<usize>> = vec![];
 
     for file in all_files {
@@ -70,7 +73,7 @@ fn main() {
 
     let all_counts = get_counts(&all_files, vocab);
 
-    println!("{:?}", all_counts);
+    println!("{:?}", all_files);
     // let start = PreciseTime::now();
 
     // let vocab = build_vocab("./train").1;
