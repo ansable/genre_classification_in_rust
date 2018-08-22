@@ -18,6 +18,12 @@ use select::document::Document;
 use select::predicate::Attr;
 use select::predicate::Name;
 
+use std::sync::Mutex;
+
+lazy_static! {
+    pub static ref VOCAB: Mutex<Vec<std::string::String>> = Mutex::new(vec![]);
+}
+
 // function to identify type of the file. Returns String with: "html", "txt" or "other"
 fn type_of_file(filename: &str) -> &str {
     match filename.contains(".txt") {
@@ -29,7 +35,7 @@ fn type_of_file(filename: &str) -> &str {
 // Takes HTML file as parameter, extracts text from p tags and returns its contents as a vector of tokens
 // following crate was consulted for reference:
 // https://github.com/utkarshkukreti/select.rs/blob/master/tests/node_tests.rs
-fn read_html_file(filename: &str) -> Result<Vec<std::string::String>, std::io::Error> {
+fn read_html_file(filename: &str) -> Result<Vec<(std::string::String, usize)>, std::io::Error> {
     let file = File::open(filename).expect("File not found");
     let document = Document::from_read(file);
 
@@ -40,14 +46,14 @@ fn read_html_file(filename: &str) -> Result<Vec<std::string::String>, std::io::E
     for main_div in document.unwrap().find(Attr("id", "chapters")) {
         for p in main_div.find(Name("p")) {
             text = format!("{}", text.to_owned() + &p.first_child().unwrap().text());
-            }
         }
+    }
 
     return Ok(tokenize_text(&text));
 }
 
 // Takes text file as argument, returns its contents as a vector of tokens
-fn read_txt_file(filename: &str) -> Result<Vec<std::string::String>, std::io::Error> {
+fn read_txt_file(filename: &str) -> Result<Vec<(std::string::String, usize)>, std::io::Error> {
     let mut file = File::open(filename).expect("Could not open file");
     let mut contents = String::new();
     file.read_to_string(&mut contents)
@@ -56,13 +62,44 @@ fn read_txt_file(filename: &str) -> Result<Vec<std::string::String>, std::io::Er
     return Ok(tokenize_text(&contents));
 }
 
-// function to tokenize text
-pub fn tokenize_text<'a>(text: &'a str) -> Vec<std::string::String> {
-    let result = str::replace(text, "'", " "); // scanlex crashes and burns upon encountering apostrophes
+// function to tokenize text, count tokens and build vocabulary
+pub fn tokenize_text<'a>(text: &'a str) -> Vec<(std::string::String, usize)> {
+    let text = str::replace(text, "'", " "); // scanlex crashes and burns upon encountering apostrophes
 
-    return scanlex::Scanner::new(&result)
-        .filter_map(|t| t.to_iden())
-        .collect();
+    let mut scanner = scanlex::Scanner::new(&text);
+
+    let mut tokens: Vec<(std::string::String, usize)> = vec![];
+
+    loop {
+        let current_token = scanner.get();
+
+        if current_token.is_iden() {
+            let current_word = &current_token.to_iden().unwrap();
+
+            if !VOCAB.lock().unwrap().contains(&current_word) {
+                VOCAB.lock().unwrap().push(current_word.to_string());
+            }
+
+            let mut token_in_tokens = false;
+            let mut position_counter = 0;
+
+            for &(ref token, count) in tokens.iter() {
+                if token == &current_word.to_string() {
+                    token_in_tokens = true;
+                    break;
+                }
+                position_counter += 1;
+            }
+            if token_in_tokens {
+                tokens[position_counter].1 += 1;
+            } else {
+                tokens.push((current_word.to_string(), 1));
+            }
+        } else if current_token.finished() {
+            break;
+        }
+    }
+    tokens
 }
 
 // function to apply stopwords
@@ -83,7 +120,7 @@ fn remove_stopwords(line: &str) -> std::vec::Vec<&str> {
 // }
 
 // main preprocessing function, where text is identified and True/False (stopwords) is in parameters
-pub fn preprocess_file(with_stopwords: bool, filename: &str) -> Vec<std::string::String> {
+pub fn preprocess_file(with_stopwords: bool, filename: &str) -> Vec<(std::string::String, usize)> {
     match type_of_file(filename) {
         "txt" => read_txt_file(filename).unwrap(),
         "html" => read_html_file(filename).unwrap(),

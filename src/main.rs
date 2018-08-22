@@ -1,56 +1,61 @@
 extern crate scanlex;
 extern crate select;
 extern crate stopwords;
-
 extern crate time;
+
 use time::PreciseTime;
+
+#[macro_use]
+extern crate lazy_static;
+
+extern crate tfidf;
+use tfidf::{TfIdf, TfIdfDefault};
 
 use std::collections::HashMap;
 use std::fs;
 
 mod preprocessing;
+use preprocessing::VOCAB;
 use preprocessing::preprocess_file;
 use preprocessing::tokenize_text;
 
-// function to build empty vec with all words that appear in vocabulary
-fn build_vocab(train_directory: &str) -> (Vec<Vec<std::string::String>>, Vec<std::string::String>) {
-    let train_dir = fs::read_dir("./train").unwrap();
+// function to get tokens from the whole training corpus
+fn get_tokens_and_counts_from_corpus(
+    train_directory: &str,
+) -> Vec<Vec<(std::string::String, usize)>> {
+    let train_dir = fs::read_dir(train_directory).unwrap();
 
-    let mut vocab: Vec<std::string::String> = vec![];
-    let mut all_files: Vec<Vec<std::string::String>> = vec![];
-
-    let mut count = 0usize;
+    let mut all_files: Vec<Vec<(std::string::String, usize)>> = vec![];
+    let mut count = 0;
 
     for train_file in train_dir {
         count += 1;
         println!("{:?}", count);
-        let tokens_for_file = &preprocess_file(false, train_file.unwrap().path().to_str().unwrap());
-        all_files.push(tokens_for_file.to_vec());
-
-        for token in tokens_for_file {
-            if !vocab.contains(&token) {
-                vocab.push(token.to_string());
-            }
-        }
+        all_files.push(preprocess_file(
+            false,
+            train_file.unwrap().path().to_str().unwrap(),
+        ));
     }
-    (all_files, vocab)
+    all_files
 }
 
-fn get_counts(
-    all_files: &Vec<Vec<std::string::String>>,
-    vocab: Vec<std::string::String>,
-) -> Vec<Vec<usize>> {
-    let mut all_counts: Vec<Vec<usize>> = vec![];
+fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f64>> {
+    let mut tfidf_vectors: Vec<Vec<f64>> = vec![];
+    for doc in &all_files {
+        let mut tfidf_vector: Vec<f64> = vec![0f64; VOCAB.lock().unwrap().len()];
 
-    for file in all_files {
-        let mut counts = vec![0; vocab.len()];
-
-        for token in file {
-            counts[vocab.iter().position(|ref t| t == &token).unwrap()] += 1;
+        for word in doc.iter() {
+            let position = VOCAB
+                .lock()
+                .unwrap()
+                .iter()
+                .position(|t| t == &word.0)
+                .unwrap();
+            tfidf_vector[position] = TfIdfDefault::tfidf(&word.0, doc, all_files.iter());
         }
-        all_counts.push(counts);
+        tfidf_vectors.push(tfidf_vector);
     }
-    all_counts
+    tfidf_vectors
 }
 
 fn main() {
@@ -63,22 +68,16 @@ fn main() {
     // tokenize text
     // assert_eq!(tokenize_text("??? who are! (CAT)))"),&["who", "are", "CAT"]);
 
-    // let baby = &preprocess_file(false, "train/disappearence.txt");
-    // println!("{:?}", baby);
+    // let lion = &preprocess_file(false, "train/ghost_of_alive.txt");
+    // println!("{:?}", lion);
 
-    let tuple = build_vocab("./train");
+    let start = PreciseTime::now();
 
-    let all_files = tuple.0;
-    let vocab = tuple.1;
+    let all_files = get_tokens_and_counts_from_corpus("./train");
+    let tfidf_vectors = get_tfdif_vectors(all_files);
+    println!("{:?}", tfidf_vectors);
 
-    let all_counts = get_counts(&all_files, vocab);
-
-    println!("{:?}", all_files);
-    // let start = PreciseTime::now();
-
-    // let vocab = build_vocab("./train").1;
-
-    // let end = PreciseTime::now();
-    // println!("This program took {} seconds to run", start.to(end)); // current benchmark: 148s
-    // println!("{:?}", vocab.len());
+    let end = PreciseTime::now();
+    println!("This program took {} seconds to run", start.to(end)); // current benchmark: 149s
+    println!("{:?}", VOCAB.lock().unwrap().len());
 }
