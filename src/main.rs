@@ -11,13 +11,11 @@ extern crate lazy_static;
 extern crate tfidf;
 use tfidf::{TfIdf, TfIdfDefault};
 
-use std::collections::HashMap;
 use std::fs;
 
 mod preprocessing;
 use preprocessing::VOCAB;
 use preprocessing::preprocess_file;
-use preprocessing::tokenize_text;
 
 // function to get tokens from the whole training corpus
 fn get_tokens_and_counts_from_corpus(

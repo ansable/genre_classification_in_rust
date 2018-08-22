@@ -49,7 +49,7 @@ fn read_html_file(filename: &str) -> Result<Vec<(std::string::String, usize)>, s
         }
     }
 
-    return Ok(tokenize_text(&text));
+    return Ok(tokenize_and_count(&text));
 }
 
 // Takes text file as argument, returns its contents as a vector of tokens
@@ -59,16 +59,16 @@ fn read_txt_file(filename: &str) -> Result<Vec<(std::string::String, usize)>, st
     file.read_to_string(&mut contents)
         .expect("Error encountered while processing file");
 
-    return Ok(tokenize_text(&contents));
+    return Ok(tokenize_and_count(&contents));
 }
 
 // function to tokenize text, count tokens and build vocabulary
-pub fn tokenize_text<'a>(text: &'a str) -> Vec<(std::string::String, usize)> {
+pub fn tokenize_and_count<'a>(text: &'a str) -> Vec<(std::string::String, usize)> {
     let text = str::replace(text, "'", " "); // scanlex crashes and burns upon encountering apostrophes
 
     let mut scanner = scanlex::Scanner::new(&text);
 
-    let mut tokens: Vec<(std::string::String, usize)> = vec![];
+    let mut tokens_and_counts: Vec<(std::string::String, usize)> = vec![];
 
     loop {
         let current_token = scanner.get();
@@ -83,7 +83,7 @@ pub fn tokenize_text<'a>(text: &'a str) -> Vec<(std::string::String, usize)> {
             let mut token_in_tokens = false;
             let mut position_counter = 0;
 
-            for &(ref token, count) in tokens.iter() {
+            for &(ref token, _count) in tokens_and_counts.iter() {
                 if token == &current_word.to_string() {
                     token_in_tokens = true;
                     break;
@@ -91,15 +91,15 @@ pub fn tokenize_text<'a>(text: &'a str) -> Vec<(std::string::String, usize)> {
                 position_counter += 1;
             }
             if token_in_tokens {
-                tokens[position_counter].1 += 1;
+                tokens_and_counts[position_counter].1 += 1;
             } else {
-                tokens.push((current_word.to_string(), 1));
+                tokens_and_counts.push((current_word.to_string(), 1));
             }
         } else if current_token.finished() {
             break;
         }
     }
-    tokens
+    tokens_and_counts
 }
 
 // function to apply stopwords
