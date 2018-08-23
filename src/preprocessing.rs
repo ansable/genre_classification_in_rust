@@ -45,7 +45,10 @@ fn read_html_file(filename: &str) -> Result<Vec<(std::string::String, usize)>, s
 
     for main_div in document.unwrap().find(Attr("id", "chapters")) {
         for p in main_div.find(Name("p")) {
-            text = format!("{}", text.to_owned() + &p.first_child().unwrap().text());
+            match &p.children().next(){
+                Some(Node) => text = format!("{}", text.to_owned() + &p.first_child().unwrap().text()),
+                None => text = text,
+            }
         }
     }
 
