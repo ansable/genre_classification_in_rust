@@ -1,11 +1,8 @@
-# Stage 1 (Anna - in process)
-
-  - Collecting Corpora. (6 genres, 100 texts each, except romantic literature: but amount of texts aligned with other genres)
-  - Separate to train and test (do we need dev?)
-  - **Status**: Horror and romance are to be done
-  - **Problems**: too old texts. **Propossed solution**: using fanfiction in specific genres to make text less old.
-  - **Possible addition**: mismatch learning?
-
+# Data:
+- 5 genres (romance, sci-fi, horror, erotica and detective), each approx of 100 texts. 
+- Sources: site archiveofourown (fanfiction) and texts from Project Gutenberg
+- Splitted to test and train set, so far approx 20/80
+- **Possible additions and improvements**: data augmentation? mismatch learning?
 
 # Stage 2. Preprocessing (I propose to do a separate file or class with it)
 
