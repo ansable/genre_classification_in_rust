@@ -1,3 +1,4 @@
+extern crate clap;
 extern crate scanlex;
 extern crate select;
 extern crate stopwords;
@@ -13,13 +14,16 @@ use tfidf::{TfIdf, TfIdfDefault};
 
 use std::fs;
 
+mod args;
+use args::parse_args;
+
 mod preprocessing;
 use preprocessing::VOCAB;
 use preprocessing::preprocess_file;
 
 // function to get tokens from the whole training corpus
 fn get_tokens_and_counts_from_corpus(
-    train_directory: &str,
+    train_directory: &str, with_stopwords: bool
 ) -> Vec<Vec<(std::string::String, usize)>> {
     let train_dir = fs::read_dir(train_directory).unwrap();
 
@@ -30,8 +34,8 @@ fn get_tokens_and_counts_from_corpus(
         count += 1;
         println!("{:?}", count);
         all_files.push(preprocess_file(
-            false,
             train_file.unwrap().path().to_str().unwrap(),
+            with_stopwords
         ));
     }
     all_files
@@ -71,7 +75,11 @@ fn main() {
 
     let start = PreciseTime::now();
 
-    let all_files = get_tokens_and_counts_from_corpus("./train");
+    let matches = parse_args();
+
+    let train_dir = matches.value_of("TRAIN_DIR").unwrap_or("./train");
+
+    let all_files = get_tokens_and_counts_from_corpus(train_dir, matches.is_present("stopwords"));
     let tfidf_vectors = get_tfdif_vectors(all_files);
     println!("{:?}", tfidf_vectors);
 

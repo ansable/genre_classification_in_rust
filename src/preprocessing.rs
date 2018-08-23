@@ -120,7 +120,7 @@ fn remove_stopwords(line: &str) -> std::vec::Vec<&str> {
 // }
 
 // main preprocessing function, where text is identified and True/False (stopwords) is in parameters
-pub fn preprocess_file(with_stopwords: bool, filename: &str) -> Vec<(std::string::String, usize)> {
+pub fn preprocess_file(filename: &str, with_stopwords: bool) -> Vec<(std::string::String, usize)> {
     match type_of_file(filename) {
         "txt" => read_txt_file(filename).unwrap(),
         "html" => read_html_file(filename).unwrap(),

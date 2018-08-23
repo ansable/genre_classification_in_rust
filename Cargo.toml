@@ -1,5 +1,5 @@
 [package]
-name = "genre_class_rust_rust_rust"
+name = "genre_classification_in_rust"
 version = "0.1.0"
 authors = ["Marko Lozajic <marko.lozajic@student.uni-tuebingen.de>, Anna Soboleva <anna.soboleva@student.uni-tuebingen.de>"]
 
