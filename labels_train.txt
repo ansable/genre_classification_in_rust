@@ -1,5 +1,8 @@
+667 Children of the Beast.html scifi
 A Dark Alley and a Bad Idea.html detective
+A Day in the Life.html scifi
 A Final Warning.html horror
+A Lon Beginning.html scifi
 A Mermaids Kiss.html romance
 A Self Fulfilling Prophecy.html romance
 A Time for Everything.html romance
@@ -8,21 +11,28 @@ a_lion.txt detective
 a_lost_day.txt detective
 a_thing_that.txt detective
 Abduction.html romance
+adaptation.txt scifi
+Adrift.html scifi
 adventure_of_.txt detective
 adventures_of_sherlock_holmes.txt detective
 After Every Happy.html romance
 age_of_innocence.txt romance
 Alazon noir.html detective
+All These Galaxies and Zero.html scifi
+alternate_plan.txt scifi
+Always The Stars.html scifi
 An Ill Wind.html horror
 An Unkindness of Ravens.html horror
 angel_of_terror.txt detective
 ann_veronica.txt romance
 anna_karenina.txt romance
 another_giantic_book.txt romance
+anything_you_can_do.txt scifi
 Autumn Leaves.html romance
 baby.html horror
 balzak.txt detective
 Basement.html horror
+Beckys Story.html scifi
 Becoming.html horror
 bed.txt detective
 beryl_coronet.txt detective
@@ -41,6 +51,7 @@ bullet_for_cinderella.txt detective
 Bunny Grudges.html erotica
 burglar_ghost.txt horror
 Burning Alike.html erotica
+by_proxy.txt scifi
 Call Me Babygirl.html erotica
 Call me by my name.html erotica
 Calling Out My Name In The.html erotica
@@ -54,28 +65,37 @@ cave_of_horror_etc.txt horror
 Cerise.html detective
 charles.txt detective
 cheated_juliet.txt detective
+circuit_riders.txt scifi
 clerk.txt detective
+coffin_cure.txt scifi
 Cold Black Maggie.html horror
 colonel.txt horror
 Come Ride Me.html erotica
+compromise.html scifi
 Computer Addicted.html erotica
 confession.txt detective
 conscript.txt detective
+Constellations.html scifi
+control_group.txt scifi
 count.txt horror
 Crime Without Passion.html detective
 crooked_man.txt detective
+crowded_earth.txt scifi
 cyclist.txt detective
 Dad Died Mom Crazy Me Too.html horror
 Daddy Thrawn.html erotica
 dame.txt horror
 damned.txt horror
 dancing_man.txt detective
+Daughters of This Planet.html scifi
 Death Trigger.html horror
+Deems x Depression Which.html scifi
 Deepest Fear.html horror
 detective_stories.txt detective
 devil_foot.txt detective
 Diamonds Do Not Equal Love.html erotica
 disappearence.txt detective
+Discovery.html scifi
 Dont Take Much to Start Me.html erotica
 dracula.txt horror
 Dreams.html horror
@@ -89,13 +109,19 @@ Elixir.html horror
 empty_house.txt detective
 engineers_thumb.txt detective
 expectant.html erotica
+Experiment 947.html scifi
+Expiration Order 3092.html scifi
+False Flag.html scifi
 Famished.html horror
 Favor For Devils.html erotica
 fear.txt detective
 Feeling Good Now.html erotica
 fight.txt horror
 Filthy.html erotica
+final_weapon.txt scifi
+fire_people.txt scifi
 five_orange.txt detective
+Flesh and Steel.html scifi
 Floorknockers.html horror
 For All The World To See.html erotica
 For Day is Near.html erotica
@@ -105,34 +131,42 @@ getting heavy with the devil.html erotica
 ghost_of.txt horror
 ghost_of_alive.txt horror
 ghosts.txt detective
+gift_bearer.txt scifi
 Gingerbread house.html horror
 glamour_of_the_snow.txt horror
 gloria_scott.txt detective
 god morgen.html erotica
+golden_judge.txt scifi
 gratitude.txt detective
 great_saphire.txt detective
 greek_interpr.txt detective
 hand.txt horror
 hand_in_the_dark.txt detective
+happy_unfortunate.txt scifi
 Heated Fervor.html erotica
+heist_job_on_.txt scifi
 Hi My Name is Daniel.html romance
 Hooked.html erotica
 horror.txt horror
 Hot and Cold.html erotica
 How to skip boring politics.html erotica
 hum.txt romance
+hunted_heroes.txt scifi
 I Dont Know Yet.html romance
 I Had a Few Got Drunk on.html erotica
 I stare at my reflection.html horror
 If Time Could Stop.html romance
 In A Manner of Speaking.html erotica
+In a State of Absolute Stillness.html scifi
 in boxes.html horror
 In the Citadel.html erotica
 In the Teeth of the Storm.html horror
 in this question mark of.html romance
 in which everything remains.html erotica
+in_case_of_fire.txt scifi
 insantity.txt horror
 Interrogation.html erotica
+Is Augmented Cognition the.html scifi
 Is invisible to the eye.html romance
 It was Late Summer when it.html horror
 Junior.html romance
@@ -156,15 +190,26 @@ lost amp found.html horror
 lost.txt horror
 Love Me Back To Life.html erotica
 Love Unlawful Men Alike.html erotica
+ltPROXYgt REDACTED.html scifi
+machine_that_saved_the_world.txt scifi
 Make Me Yours.html erotica
 Makes Me Want Him More.html erotica
+man_made.txt scifi
+man_of_many_minds.txt scifi
 mansfield_park.txt romance
 Marco.html horror
+marooner.txt scifi
 Meetcute.html erotica
+memory_of_mars.txt scifi
 Midnight Snacc.html erotica
+millenium.txt scifi
 misfit.txt horror
+Misplaced.html scifi
 Miss Ah Harnett.html romance
+Mistake.html scifi
+Mistakes.html scifi
 monkey.txt horror
+monster.txt scifi
 Moonlight Swim.html erotica
 moonshine.txt romance
 more satisfying than bubble.html horror
@@ -177,6 +222,7 @@ Need You Now.html erotica
 Never Expected It To Be You.html romance
 Never On A Sunday.html erotica
 night_and_day.txt romance
+night_of_long_knoves.txt scifi
 nonsense.txt romance
 nothanger_abbey.txt romance
 One Evening.html erotica
@@ -227,14 +273,24 @@ star_of_india.txt romance
 Starlight.html erotica
 Stay.html erotica
 Step Into My Office.html erotica
+Strength In Numbers.html scifi
+Striker.html scifi
+success_machine.txt scifi
+survival_tactics.txt scifi
+Symbiosis.html scifi
+Tails of Fame.html scifi
+Tales of Landona.html scifi
 tales_of_terros_.txt horror
 Tell Me How.html romance
+TF318.html scifi
 The 40th.html horror
+The Box.html scifi
 The Carnival.html horror
 The Caves of Arkehna.html romance
 The Chronicles of Denbar.html romance
 The Classical Killer.html detective
 The Curious Case of the Two.html detective
+The Disreputables.html scifi
 The Egg.html horror
 the eleventh hour.html horror
 The Eternal Cherry Blossom.html horror
@@ -246,11 +302,17 @@ The Mind Of Another.html detective
 The Monster Underneath the.html horror
 The Most Glamorous Puzzle.html romance
 The Most Unlikely Mate.html romance
+The Playground.html scifi
+The Practicalities and Conventions.html scifi
 The Room.html horror
 The Song.html horror
+The Stars Danced.html scifi
 The Storm.html horror
+The Train Inspector.html scifi
 The Truth About Cats and.html romance
+The Truth of Human Magick.html scifi
 the truth untold.html detective
+The Undesireables.html scifi
 the_cave.txt romance
 the_end_of_all.txt detective
 the_gnome.txt romance
@@ -267,16 +329,22 @@ the_valley_of_fear.txt detective
 these little things define.html horror
 three_dates.txt romance
 three_students.txt detective
+Time Travellers Beware.html scifi
+tinker_dam.txt scifi
 To All The Boys I LovedReddie.html romance
 To Truly Be Together.html romance
+Today is the Last Day.html scifi
 torture_hope.txt detective
 TOT.html horror
 tragedy_of_high.txt detective
+Traversing Bifrost.html scifi
 unbidden_guest.txt horror
+uneccesary_man.txt scifi
 Unlikely Perfection.html romance
 Untitled romance novel.html romance
 valley_mystery.txt detective
 vengenance.txt horror
+Venus Falls.html scifi
 Victory Rounds.html erotica
 Voltron Legendary Defender.html erotica
 Vulnerable.html erotica
@@ -290,6 +358,7 @@ wendigo.txt horror
 What a gay assortment.html erotica
 Whats a Loki got to do to.html erotica
 white_smth.txt romance
+Who am I Dear God.html scifi
 willows.txt horror
 Witch Dungeon.html horror
 With a Smile.html erotica
@@ -308,3 +377,4 @@ your mouth full of calla.html erotica
 Your Touch Alone is Addicting.html erotica
 Youre It.html horror
 youre my sunday candy.html erotica
+ZOE.html scifi

@@ -1,8 +1,6 @@
-﻿A Study in Depravity.html erotica
 a_couple_hours.html erotica
 a_little_something_new.html erotica
 Abandon all hope.html erotica
-﻿ask.html erotica
 All Tied Up.html erotica
 All You Need is Love.html erotica
 Animal.html erotica
@@ -45,29 +43,44 @@ moon_rock.txt detective
 Netheia.html horror
 Newsflash.html detective
 noble_bachelor.txt detective
+nothing_equation.txt scifi
 Old House.html horror
 old_man.txt detective 
 old_mansion.txt horror
 Olivebranch.html detective
+opera_haystack.txt scifi
 owls_ear.txt detective 
 parlor_car.txt horror
 peter.txt detective
 phantom_of_opera.txt horror
 Phuket.html horror
+postmark.txt scifi
 Pretty as a flower.html horror
+prize_for_eddie.txt scifi
 Rapture.html horror
 Read to Me.html horror
+Realm of the Stars Volume.html scifi
 Relief of the guard.html horror
+republic_without_a_president.txt scifi
+Rewriting Seven Years.html scifi
 Roasting In the Oven of War.html horror
+Rudi and Harry.html scifi
 Sakura Sakura.html horror
 sand.txt horror
 Say My Name Flower.html horror
+second_landing.txt scifi
+Secrets Facilitated.html scifi
+Shape.html scifi
 Shes coming up my stairs.html horror
 Solo.html horror
 some_ghost.txt horror
 some_vampire_shit.txt horror
+Sophie Kardos Assassin Slayer.html scifi
 southern_horros.txt horror
+space_platform.txt scifi
+Starfinder.html scifi
 Steven Needs SexEd.html erotica
+Strange Alloys.html scifi
 Sunny Hospital.html horror
 Symbolism.html erotica
 talk dirty to me.html erotica
@@ -78,3 +91,5 @@ tiny little boy.html erotica
 To Come Together.html erotica
 train.html erotica
 Two Days Arent Enough.html erotica
+﻿A Study in Depravity.html erotica
+﻿ask.html erotica
