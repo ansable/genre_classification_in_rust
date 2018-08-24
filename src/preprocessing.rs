@@ -26,7 +26,7 @@ lazy_static! {
 // function to identify type of the file. Returns String with: "html", "txt" or "other"
 fn type_of_file(filename: &str) -> &str {
     let split_filename: Vec<&str> = filename.split(".").collect();
-    match split_filename[1] {
+    match split_filename[2] {
         "txt" => "txt",
         "html" => "html",
         _ => "unknown",
