@@ -26,6 +26,7 @@ lazy_static! {
 // function to identify type of the file. Returns String with: "html", "txt" or "other"
 fn type_of_file(filename: &str) -> &str {
     let split_filename: Vec<&str> = filename.split(".").collect();
+
     match split_filename[2] {
         "txt" => "txt",
         "html" => "html",
@@ -48,9 +49,7 @@ fn read_html_file(
     for main_div in document.unwrap().find(Attr("id", "chapters")) {
         for p in main_div.find(Name("p")) {
             match &p.children().next() {
-                Some(child) => {
-                    text = format!("{}", text.to_owned() + &child.text())
-                }
+                Some(child) => text = format!("{}", text.to_owned() + &child.text()),
                 None => continue,
             }
         }
@@ -89,6 +88,12 @@ pub fn tokenize_and_count<'a>(
         if current_token.is_iden() {
             let current_word = &current_token.to_iden().unwrap();
 
+            if filter_stopwords {
+                if stopword(current_word.to_string()) {
+                    continue;
+                }
+            }
+
             if !VOCAB.lock().unwrap().contains(&current_word) {
                 VOCAB.lock().unwrap().push(current_word.to_string());
             }
@@ -113,29 +118,18 @@ pub fn tokenize_and_count<'a>(
         }
     }
 
-    if filter_stopwords {
-        return remove_stopwords(tokens_and_counts);
-    }
-
     tokens_and_counts
 }
 
 // function to apply stopwords
-fn remove_stopwords(
-    mut tokens_and_counts: Vec<(std::string::String, usize)>,
-) -> Vec<(std::string::String, usize)> {
+fn stopword(word: std::string::String) -> bool {
     let stopwords: Vec<_> = Spark::stopwords(Language::English)
         .unwrap()
         .iter()
         .map(|s| s.to_string())
         .collect();
-    for mut i in 0..tokens_and_counts.len() {
-        if stopwords.contains(&tokens_and_counts[i].0) {
-            tokens_and_counts.remove(i);
-            i -= 1;
-        }
-    }
-    return tokens_and_counts;
+
+    stopwords.contains(&word)
 }
 
 // // function to make ngrams out of everything
