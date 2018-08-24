@@ -1,32 +1,32 @@
 a_couple_hours.html erotica
 a_little_something_new.html erotica
-Abandon all hope.html erotica
-All Tied Up.html erotica
-All You Need is Love.html erotica
+Abandon_all_hope.html erotica
+All_Tied_Up.html erotica
+All_You_Need_is_Love.html erotica
 Animal.html erotica
-Baseball Season.html erotica
-Beer Spaghetti and Pharmaceuticals.html romance
-Bi the Way Honest Relationships.html romance
+Baseball_Season.html erotica
+Beer_Spaghetti_and_Pharmaceuticals.html romance
+Bi_the_Way_Honest_Relationships.html romance
 bracelet.txt romance
 Braids.html romance
-bring the ice cube to the.html erotica
-Burn This Out.html romance
+bring_the_ice_cube_to_the.html erotica
+Burn_This_Out.html romance
 cats.txt romance
 christ.txt romance
-Cross My Path.html romance
-Des Nuits DAmour a Plus Finir.html romance
+Cross_My_Path.html romance
+Des_Nuits_DAmour_a_Plus_Finir.html romance
 devils_cross.txt romance
-Do you remember Summer 09.html romance
+Do_you_remember_Summer_09.html romance
 emerald_eyes.txt romance
 emeralds.txt romance
 emma.txt romance
 fairy.txt romance
-get punched for the love.html romance
+get_punched_for_the_love.html romance
 ghost_again.txt romance
 god.txt romance
-Good Fences.html romance
+Good_Fences.html romance
 haunted_hotel.txt detective
-He Hates Me.html romance
+He_Hates_Me.html romance
 his_last_bow.txt detective
 horla.txt detective
 invisible_eye.txt detective
@@ -44,52 +44,52 @@ Netheia.html horror
 Newsflash.html detective
 noble_bachelor.txt detective
 nothing_equation.txt scifi
-Old House.html horror
-old_man.txt detective 
+Old_House.html horror
+old_man.txt_detective
 old_mansion.txt horror
 Olivebranch.html detective
 opera_haystack.txt scifi
-owls_ear.txt detective 
+owls_ear.txt_detective
 parlor_car.txt horror
 peter.txt detective
 phantom_of_opera.txt horror
 Phuket.html horror
 postmark.txt scifi
-Pretty as a flower.html horror
+Pretty_as_a_flower.html horror
 prize_for_eddie.txt scifi
 Rapture.html horror
-Read to Me.html horror
-Realm of the Stars Volume.html scifi
-Relief of the guard.html horror
+Read_to_Me.html horror
+Realm_of_the_Stars_Volume.html scifi
+Relief_of_the_guard.html horror
 republic_without_a_president.txt scifi
-Rewriting Seven Years.html scifi
-Roasting In the Oven of War.html horror
-Rudi and Harry.html scifi
-Sakura Sakura.html horror
+Rewriting_Seven_Years.html scifi
+Roasting_In_the_Oven_of_War.html horror
+Rudi_and_Harry.html scifi
+Sakura_Sakura.html horror
 sand.txt horror
-Say My Name Flower.html horror
+Say_My_Name_Flower.html horror
 second_landing.txt scifi
-Secrets Facilitated.html scifi
+Secrets_Facilitated.html scifi
 Shape.html scifi
-Shes coming up my stairs.html horror
+Shes_coming_up_my_stairs.html horror
 Solo.html horror
 some_ghost.txt horror
 some_vampire_shit.txt horror
-Sophie Kardos Assassin Slayer.html scifi
+Sophie_Kardos_Assassin_Slayer.html scifi
 southern_horros.txt horror
 space_platform.txt scifi
 Starfinder.html scifi
-Steven Needs SexEd.html erotica
-Strange Alloys.html scifi
-Sunny Hospital.html horror
+Steven_Needs_SexEd.html erotica
+Strange_Alloys.html scifi
+Sunny_Hospital.html horror
 Symbolism.html erotica
-talk dirty to me.html erotica
-Terminal Velocity.html erotica
-The Deadlight Of My Heart.html erotica
-Threes a Crowd.html erotica
-tiny little boy.html erotica
-To Come Together.html erotica
+talk_dirty_to_me.html erotica
+Terminal_Velocity.html erotica
+The_Deadlight_Of_My_Heart.html erotica
+Threes_a_Crowd.html erotica
+tiny_little_boy.html erotica
+To_Come_Together.html erotica
 train.html erotica
-Two Days Arent Enough.html erotica
-﻿A Study in Depravity.html erotica
+Two_Days_Arent_Enough.html erotica
+﻿A_Study_in_Depravity.html erotica
 ﻿ask.html erotica

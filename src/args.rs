@@ -17,25 +17,25 @@ pub fn parse_args() -> ArgMatches<'static> {
                 .takes_value(false),
         )
         .arg(
-            Arg::with_name("TRAIN")
-                .help("Train data")
+            Arg::with_name("TRAIN_LABELS")
+                .help("Training filenames and labels")
                 .index(1)
                 .required(true),
         )
         .arg(
-            Arg::with_name("TEST")
-                .help("Test data")
+            Arg::with_name("TEST_LABELS")
+                .help("Test filenames and labels")
                 .index(2)
                 .required(true),
         )
         .arg(
-            Arg::with_name("TRAINDIR")
+            Arg::with_name("TRAIN_DIR")
                 .help("Directory containing files for training (default: ./train)")
                 .index(3)
                 .required(false),
         )
         .arg(
-            Arg::with_name("TESTDIR")
+            Arg::with_name("TEST_DIR")
                 .help("Directory containing files for testing (default: ./test)")
                 .index(4)
                 .required(false),

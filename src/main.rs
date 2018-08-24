@@ -21,31 +21,56 @@ mod preprocessing;
 use preprocessing::VOCAB;
 use preprocessing::preprocess_file;
 
+mod text;
+use text::Text;
+use text::read_filenames_and_labels;
+
 // function to get tokens from the whole training corpus
 fn get_tokens_and_counts_from_corpus(
     train_directory: &str,
+    train_labels_file: &str,
     filter_stopwords: bool,
-) -> Vec<Vec<(std::string::String, usize)>> {
+) -> (Vec<Vec<(std::string::String, usize)>>, Vec<Text>) {
     let train_dir = fs::read_dir(train_directory).unwrap();
 
     let mut all_files: Vec<Vec<(std::string::String, usize)>> = vec![];
-    let mut count = 0;
 
-    for train_file in train_dir {
-        count += 1;
-        println!("{:?}", count);
+    let filenames_and_labels: Vec<Text> = read_filenames_and_labels(train_labels_file);
+    let mut filenames_and_labels_ordered: Vec<Text> = vec![];
 
-        let file_vector = preprocess_file(
-            train_file.unwrap().path().to_str().unwrap(),
-            filter_stopwords,
-        );
+    for (count, train_file) in train_dir.enumerate() {
+        let train_file_path = train_file.unwrap().path();
+        let train_file_full: &str = train_file_path.to_str().unwrap();
+        let train_file_as_vec: Vec<&str> = train_file_full.split("/").collect();
+
+        let train_file_short = train_file_as_vec[train_file_as_vec.len() - 1]; // gets filename after the last slash
+
+        let mut filename_found = false;
+
+        for text in filenames_and_labels.iter().cloned() {
+            if text.filename == train_file_short {
+                filenames_and_labels_ordered.push(text);
+                filename_found = true;
+                break
+            }
+        }
+
+        if !filename_found {
+            println!("{:?}{}", train_file_short, " wasn't found in labels file!");
+            continue
+        }
+
+        println!("{:?}", train_file_short);
+        println!("{:?}", count + 1);
+
+        let file_vector = preprocess_file(train_file_full, filter_stopwords);
 
         match file_vector {
             Some(v) => all_files.push(v),
             None => continue,
         }
     }
-    all_files
+    (all_files, filenames_and_labels_ordered)
 }
 
 fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f64>> {
@@ -68,17 +93,6 @@ fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>) -> Vec<V
 }
 
 fn main() {
-    // type_of_the_function
-    // assert_eq!(type_of_file("james.txt"), "txt");
-    // assert_eq!(type_of_file("marko.html"), "html");
-    // assert!(type_of_file("anna is more than a file").is_err());
-    // remove_stopwords
-    // assert_eq!(remove_stopwords("a house tired is"), &["house", "tired"]);
-    // tokenize text
-    // assert_eq!(tokenize_text("??? who are! (CAT)))"),&["who", "are", "CAT"]);
-
-    // let lion = &preprocess_file(false, "train/ghost_of_alive.txt");
-    // println!("{:?}", lion);
 
     let start = PreciseTime::now();
 
@@ -86,11 +100,23 @@ fn main() {
 
     let train_dir = matches.value_of("TRAIN_DIR").unwrap_or("./train");
 
-    let all_files = get_tokens_and_counts_from_corpus(train_dir, matches.is_present("stopwords"));
+    let train_labels_file = matches
+        .value_of("TRAIN_LABELS")
+        .unwrap_or("labels_train.txt"); // TODO  change this to exit instead, no default here!
+
+    let (all_files, filenames_and_labels_ordered) = get_tokens_and_counts_from_corpus(
+        train_dir,
+        train_labels_file,
+        matches.is_present("stopwords"),
+    );
+
+    println!("{:?}", all_files);
     let tfidf_vectors = get_tfdif_vectors(all_files);
+    println!("{:?}", filenames_and_labels_ordered);
     println!("{:?}", tfidf_vectors);
 
     let end = PreciseTime::now();
-    println!("This program took {} seconds to run", start.to(end)); // current benchmark: 149s
-    println!("{:?}", VOCAB.lock().unwrap().len());
+    println!("This program took {} seconds to run", start.to(end));
+
+    read_filenames_and_labels("labels_train.txt");
 }
