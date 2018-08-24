@@ -29,13 +29,13 @@ pub fn parse_args() -> ArgMatches<'static> {
                 .required(true),
         )
         .arg(
-            Arg::with_name("TRAINDIR")
+            Arg::with_name("TRAIN_DIR")
                 .help("Directory containing files for training (default: ./train)")
                 .index(3)
                 .required(false),
         )
         .arg(
-            Arg::with_name("TESTDIR")
+            Arg::with_name("TEST_DIR")
                 .help("Directory containing files for testing (default: ./test)")
                 .index(4)
                 .required(false),

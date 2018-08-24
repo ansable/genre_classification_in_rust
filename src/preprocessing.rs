@@ -27,7 +27,7 @@ lazy_static! {
 fn type_of_file(filename: &str) -> &str {
     let split_filename: Vec<&str> = filename.split(".").collect();
 
-    match split_filename[2] {
+    match split_filename[split_filename.len()-1] {
         "txt" => "txt",
         "html" => "html",
         _ => "unknown",
