@@ -23,7 +23,8 @@ use preprocessing::preprocess_file;
 
 // function to get tokens from the whole training corpus
 fn get_tokens_and_counts_from_corpus(
-    train_directory: &str, with_stopwords: bool
+    train_directory: &str,
+    filter_stopwords: bool,
 ) -> Vec<Vec<(std::string::String, usize)>> {
     let train_dir = fs::read_dir(train_directory).unwrap();
 
@@ -33,10 +34,16 @@ fn get_tokens_and_counts_from_corpus(
     for train_file in train_dir {
         count += 1;
         println!("{:?}", count);
-        all_files.push(preprocess_file(
+
+        let file_vector = preprocess_file(
             train_file.unwrap().path().to_str().unwrap(),
-            with_stopwords
-        ));
+            filter_stopwords,
+        );
+
+        match file_vector {
+            Some(v) => all_files.push(v),
+            None => continue,
+        }
     }
     all_files
 }
