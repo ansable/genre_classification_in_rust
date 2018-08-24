@@ -24,16 +24,15 @@ use preprocessing::preprocess_file;
 // function to get tokens from the whole training corpus
 fn get_tokens_and_counts_from_corpus(
     train_directory: &str,
+    train_labels_file: &str,
     filter_stopwords: bool,
 ) -> Vec<Vec<(std::string::String, usize)>> {
     let train_dir = fs::read_dir(train_directory).unwrap();
 
     let mut all_files: Vec<Vec<(std::string::String, usize)>> = vec![];
-    let mut count = 0;
 
-    for train_file in train_dir {
-        count += 1;
-        println!("{:?}", count);
+    for (count, train_file) in train_dir.enumerate() {
+        println!("{:?}", count + 1);
 
         let file_vector = preprocess_file(
             train_file.unwrap().path().to_str().unwrap(),
@@ -85,8 +84,15 @@ fn main() {
     let matches = parse_args();
 
     let train_dir = matches.value_of("TRAIN_DIR").unwrap_or("./train");
+    let train_labels_file = matches
+        .value_of("TRAIN_LABELS")
+        .unwrap_or("labels_train.txt");
 
-    let all_files = get_tokens_and_counts_from_corpus(train_dir, matches.is_present("stopwords"));
+    let all_files = get_tokens_and_counts_from_corpus(
+        train_dir,
+        train_labels_file,
+        matches.is_present("stopwords"),
+    );
     let tfidf_vectors = get_tfdif_vectors(all_files);
     println!("{:?}", tfidf_vectors);
 

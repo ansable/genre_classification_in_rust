@@ -17,14 +17,14 @@ pub fn parse_args() -> ArgMatches<'static> {
                 .takes_value(false),
         )
         .arg(
-            Arg::with_name("TRAIN")
-                .help("Train data")
+            Arg::with_name("TRAIN_LABELS")
+                .help("Training filenames and labels")
                 .index(1)
                 .required(true),
         )
         .arg(
-            Arg::with_name("TEST")
-                .help("Test data")
+            Arg::with_name("TEST_LABELS")
+                .help("Test filenames and labels")
                 .index(2)
                 .required(true),
         )
