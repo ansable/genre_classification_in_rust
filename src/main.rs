@@ -18,6 +18,9 @@ use ndarray::Array2;
 extern crate ndarray_linalg;
 use ndarray_linalg::svd::SVD;
 
+extern crate serde;
+extern crate serde_pickle;
+
 use std::fs;
 
 mod args;
@@ -80,6 +83,7 @@ fn get_tokens_and_counts_from_corpus(
 }
 
 fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f64>> {
+    println!("{}", "Creating tf-idf vectors...");
     let mut tfidf_vectors: Vec<Vec<f64>> = vec![];
     for doc in &all_files {
         let mut tfidf_vector: Vec<f64> = vec![0f64; VOCAB.lock().unwrap().len()];
@@ -98,11 +102,20 @@ fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>) -> Vec<V
     tfidf_vectors
 }
 
-
-fn perform_svd(tfidf_vectors: Array2<f64>) {
-    // TODO even if we can somehow make this work for Array2, we will need to convert our Vec<Vec<f64>> into one
-    tfidf_vectors.svd(false, true);
+fn save_vec_to_file(vec: Vec<Vec<f64>>, file: &str) -> () {
+    let vector_pickled = serde_pickle::to_vec(&vec, true).unwrap();
+    fs::write(file, vector_pickled).expect("Unable to write to file");
 }
+
+fn read_vec_from_file(file: &str) -> Vec<Vec<f64>> {
+    let vec = fs::read(file).expect("Unable to read file");
+    serde_pickle::from_slice(&vec).unwrap()
+}
+
+// fn perform_svd(tfidf_vectors: Array2<f64>) {
+//     // TODO even if we can somehow make this work for Array2, we will need to convert our Vec<Vec<f64>> into one
+//     tfidf_vectors.svd(false, true);
+// }
 
 fn main() {
 
@@ -122,11 +135,13 @@ fn main() {
         matches.is_present("stopwords"),
     );
 
-    println!("{:?}", all_files);
     let tfidf_vectors = get_tfdif_vectors(all_files);
-    println!("{:?}", filenames_and_labels_ordered);
-    println!("{:?}", tfidf_vectors);
-    println!("{}{:?}", "The vocabulary size is: ", VOCAB.lock().unwrap().len());
+    // println!("{:?}", filenames_and_labels_ordered);
+    // println!("{:?}", tfidf_vectors);
+
+    // save_vec_to_file(tfidf_vectors, "vector.pickle");
+    // println!("{:?}", read_vec_from_file("vector.pickle"));
+    
 
     let end = PreciseTime::now();
     println!("This program took {} seconds to run", start.to(end));
