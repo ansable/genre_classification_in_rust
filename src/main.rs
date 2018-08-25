@@ -12,6 +12,12 @@ extern crate lazy_static;
 extern crate tfidf;
 use tfidf::{TfIdf, TfIdfDefault};
 
+extern crate ndarray;
+use ndarray::Array2;
+
+extern crate ndarray_linalg;
+use ndarray_linalg::svd::*;
+
 use std::fs;
 
 mod args;
