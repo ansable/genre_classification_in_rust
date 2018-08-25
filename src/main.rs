@@ -114,9 +114,8 @@ fn main() {
     let tfidf_vectors = get_tfdif_vectors(all_files);
     println!("{:?}", filenames_and_labels_ordered);
     println!("{:?}", tfidf_vectors);
+    println!("{}{:?}", "The vocabulary size is: ", VOCAB.lock().unwrap().len());
 
     let end = PreciseTime::now();
     println!("This program took {} seconds to run", start.to(end));
-
-    read_filenames_and_labels("labels_train.txt");
 }

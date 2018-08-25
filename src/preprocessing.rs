@@ -86,7 +86,7 @@ pub fn tokenize_and_count<'a>(
         let current_token = scanner.get();
 
         if current_token.is_iden() {
-            let current_word = &current_token.to_iden().unwrap();
+            let current_word = &current_token.to_iden().unwrap().to_lowercase();
 
             if filter_stopwords {
                 if stopword(current_word.to_string()) {
