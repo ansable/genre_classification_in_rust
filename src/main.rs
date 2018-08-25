@@ -60,13 +60,13 @@ fn get_tokens_and_counts_from_corpus(
             if text.filename == train_file_short {
                 filenames_and_labels_ordered.push(text);
                 filename_found = true;
-                break
+                break;
             }
         }
 
         if !filename_found {
             println!("{:?}{}", train_file_short, " wasn't found in labels file!");
-            continue
+            continue;
         }
 
         println!("{:?}", train_file_short);
@@ -102,14 +102,14 @@ fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>) -> Vec<V
     tfidf_vectors
 }
 
-fn save_vec_to_file(vec: Vec<Vec<f64>>, file: &str) -> () {
-    let vector_pickled = serde_pickle::to_vec(&vec, true).unwrap();
-    fs::write(file, vector_pickled).expect("Unable to write to file");
+fn save_matrix_to_file(matrix: Vec<Vec<f64>>, file: &str) -> () {
+    let matrix_pickled = serde_pickle::to_vec(&matrix, true).unwrap();
+    fs::write(file, matrix_pickled).expect("Unable to write to file");
 }
 
-fn read_vec_from_file(file: &str) -> Vec<Vec<f64>> {
-    let vec = fs::read(file).expect("Unable to read file");
-    serde_pickle::from_slice(&vec).unwrap()
+fn read_matrix_from_file(file: &str) -> Vec<Vec<f64>> {
+    let matrix = fs::read(file).expect("Unable to read file");
+    serde_pickle::from_slice(&matrix).unwrap()
 }
 
 // fn perform_svd(tfidf_vectors: Array2<f64>) {
@@ -118,7 +118,6 @@ fn read_vec_from_file(file: &str) -> Vec<Vec<f64>> {
 // }
 
 fn main() {
-
     let start = PreciseTime::now();
 
     let matches = parse_args();
@@ -127,7 +126,7 @@ fn main() {
 
     let train_labels_file = matches
         .value_of("TRAIN_LABELS")
-        .unwrap_or("labels_train.txt"); // TODO  change this to exit instead, no default here!
+        .unwrap_or("labels_train.txt"); // TODO change this to exit instead, no default here!
 
     let (all_files, filenames_and_labels_ordered) = get_tokens_and_counts_from_corpus(
         train_dir,
@@ -135,13 +134,11 @@ fn main() {
         matches.is_present("stopwords"),
     );
 
-    let tfidf_vectors = get_tfdif_vectors(all_files);
-    // println!("{:?}", filenames_and_labels_ordered);
-    // println!("{:?}", tfidf_vectors);
+    let tfidf_matrix = get_tfdif_vectors(all_files);
 
-    // save_vec_to_file(tfidf_vectors, "vector.pickle");
-    // println!("{:?}", read_vec_from_file("vector.pickle"));
-    
+    // save_matrix_to_file(tfidf_matrix, "matrix.pickle");
+
+    // let deserialised_matrix = read_matrix_from_file("minimatrix.pickle");
 
     let end = PreciseTime::now();
     println!("This program took {} seconds to run", start.to(end));
