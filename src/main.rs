@@ -21,6 +21,11 @@ use ndarray_linalg::svd::SVD;
 extern crate serde;
 extern crate serde_pickle;
 
+extern crate rusty_machine;
+use rusty_machine::learning::naive_bayes::{NaiveBayes, Gaussian};
+use rusty_machine::linalg::Matrix;
+use rusty_machine::learning::SupModel;
+
 use std::fs;
 
 mod args;
@@ -117,6 +122,55 @@ fn read_matrix_from_file(file: &str) -> Vec<Vec<f64>> {
 //     tfidf_vectors.svd(false, true);
 // }
 
+fn genre_labels_to_numbers(texts: Vec<Text>) -> (usize, usize, Vec<Vec<f64>>) {
+    let mut labels_as_numbers: Vec<Vec<f64>> = vec![];
+    let rows = texts.len();
+
+    for text in texts.iter().cloned() {
+
+        match &*text.label {
+            "detective" => labels_as_numbers.push(vec![1.0, 0.0, 0.0, 0.0, 0.0]),
+            "erotica" => labels_as_numbers.push(vec![0.0, 1.0, 0.0, 0.0, 0.0]),
+            "horror" => labels_as_numbers.push(vec![0.0, 0.0, 1.0, 0.0, 0.0]),
+            "romance" => labels_as_numbers.push(vec![0.0, 0.0, 0.0, 1.0, 0.0]),
+            "scifi" => labels_as_numbers.push(vec![0.0, 0.0, 0.0, 0.0, 1.0]),
+            _ => continue,
+        }
+    }
+    (rows, 5, labels_as_numbers) // 5 is the number of different labels
+}
+
+fn matrix_to_vec(matrix: Vec<Vec<f64>>) -> (usize, usize, Vec<f64>) {
+    let mut result_vec = vec![];
+    let rows = matrix.len();
+    let cols = matrix[0].len();
+
+    for vec in matrix {
+        for item in vec {
+            result_vec.push(item);
+        }
+    }
+    (rows, cols, result_vec)
+}
+
+// this one doesn't seem to be working at all, but we can give it another chance on a larger data set
+fn get_naive_bayes_predictions(file_matrix: Vec<Vec<f64>>, texts: Vec<Text>) -> () {
+    let (file_rows, file_cols, file_matrix_flat) = matrix_to_vec(file_matrix);
+    let (label_rows, label_cols, text_labels_as_numbers) = matrix_to_vec(genre_labels_to_numbers(texts).2);
+
+    let inputs = Matrix::new(file_rows, file_cols, file_matrix_flat);
+    let labels = Matrix::new(label_rows, label_cols, text_labels_as_numbers);
+
+    let mut model = NaiveBayes::<Gaussian>::new();
+
+    println!("{}", "Training Naive Bayes model...");
+    model.train(&inputs, &labels).unwrap();
+
+    let predictions = model.predict(&inputs).unwrap();
+
+    println!("{:?}", predictions);
+}
+
 fn main() {
     let start = PreciseTime::now();
 
@@ -135,6 +189,8 @@ fn main() {
     );
 
     let tfidf_matrix = get_tfdif_vectors(all_files);
+
+    get_naive_bayes_predictions(tfidf_matrix, filenames_and_labels_ordered);
 
     // save_matrix_to_file(tfidf_matrix, "matrix.pickle");
 
