@@ -16,7 +16,7 @@ extern crate ndarray;
 use ndarray::Array2;
 
 extern crate ndarray_linalg;
-use ndarray_linalg::svd::*;
+use ndarray_linalg::svd::SVD;
 
 use std::fs;
 
@@ -96,6 +96,12 @@ fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>) -> Vec<V
         tfidf_vectors.push(tfidf_vector);
     }
     tfidf_vectors
+}
+
+
+fn perform_svd(tfidf_vectors: Array2<f64>) {
+    // TODO even if we can somehow make this work for Array2, we will need to convert our Vec<Vec<f64>> into one
+    tfidf_vectors.svd(false, true);
 }
 
 fn main() {
