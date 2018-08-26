@@ -87,8 +87,10 @@ fn get_tokens_and_counts_from_corpus(
     (all_files, labels_ordered)
 }
 
-
-fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>, mut vocab: Vec<std::string::String>) -> Vec<Vec<f64>> {
+fn get_tfdif_vectors(
+    all_files: Vec<Vec<(std::string::String, usize)>>,
+    mut vocab: Vec<std::string::String>,
+) -> Vec<Vec<f64>> {
     println!("{}", "Creating tf-idf vectors...");
     let mut tfidf_vectors: Vec<Vec<f64>> = vec![];
     let mut word_idf_scores: Vec<f64> = vec![];
@@ -121,11 +123,8 @@ fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>, mut voca
         }
 
         for (word, count) in doc.iter() {
-            let position = vocab
-                .iter()
-                .position(|t| t == word)
-                .unwrap();
-            tfidf_vector[position] = *count as f64/total_words as f64 * word_idf_scores[i];
+            let position = vocab.iter().position(|t| t == word).unwrap();
+            tfidf_vector[position] = *count as f64 / total_words as f64 * word_idf_scores[i];
         }
         tfidf_vectors.push(tfidf_vector);
     }
@@ -226,7 +225,7 @@ fn main() {
     // );
 
     let labels_ordered = read_vector_from_file("labels_ordered.pickle");
-    let tfidf_matrix = read_matrix_from_file("matrix_correct.pickle");
+    let tfidf_matrix = read_matrix_from_file("matrix.pickle");
 
     // get_naive_bayes_predictions(tfidf_matrix, labels_ordered);
 
