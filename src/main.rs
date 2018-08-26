@@ -43,12 +43,16 @@ fn get_tokens_and_counts_from_corpus(
     train_directory: &str,
     train_labels_file: &str,
     filter_stopwords: bool,
-) -> (Vec<Vec<(std::string::String, usize)>>, Vec<std::string::String>) {
+) -> (
+    Vec<Vec<(std::string::String, usize)>>,
+    Vec<std::string::String>,
+) {
     let train_dir = fs::read_dir(train_directory).unwrap();
 
     let mut all_files: Vec<Vec<(std::string::String, usize)>> = vec![];
 
-    let filenames_and_labels: Vec<(std::string::String, std::string::String)> = read_filenames_and_labels(train_labels_file);
+    let filenames_and_labels: Vec<(std::string::String, std::string::String)> =
+        read_filenames_and_labels(train_labels_file);
     let mut labels_ordered: Vec<std::string::String> = vec![];
 
     for (count, train_file) in train_dir.enumerate() {
@@ -64,13 +68,13 @@ fn get_tokens_and_counts_from_corpus(
             if filename == train_file_short {
                 labels_ordered.push(label.to_string());
                 filename_found = true;
-                break
+                break;
             }
         }
 
         if !filename_found {
             println!("{:?}{}", train_file_short, " wasn't found in labels file!");
-            continue
+            continue;
         }
 
         println!("{:?}", train_file_short);
@@ -112,14 +116,14 @@ fn save_matrix_to_file(matrix: Vec<std::string::String>, file: &str) -> () {
     fs::write(file, matrix_pickled).expect("Unable to write to file");
 }
 
-fn read_matrix_from_file1(file: &str) -> Vec<Vec<(std::string::String, usize)>> {
+fn read_matrix_from_file(file: &str) -> Vec<Vec<(std::string::String, usize)>> {
     let matrix = fs::read(file).expect("Unable to read file");
     serde_pickle::from_slice(&matrix).unwrap()
 }
 
-fn read_matrix_from_file2(file: &str) -> Vec<std::string::String> {
-    let matrix = fs::read(file).expect("Unable to read file");
-    serde_pickle::from_slice(&matrix).unwrap()
+fn read_labels_from_file(file: &str) -> Vec<std::string::String> {
+    let labels = fs::read(file).expect("Unable to read file");
+    serde_pickle::from_slice(&labels).unwrap()
 }
 
 // fn perform_svd(tfidf_vectors: Array2<f64>) {
@@ -196,15 +200,20 @@ fn main() {
     //     matches.is_present("stopwords"),
     // );
 
-    let deserialised_files_and_counts = read_matrix_from_file1("files_and_counts.pickle");
-    let labels_ordered = read_matrix_from_file2("labels_ordered.pickle");
+    // let deserialised_files_and_counts = read_matrix_from_file("files_and_counts.pickle");
+    // let labels_ordered = read_labels_from_file("labels_ordered.pickle");
 
+    let (all_files, labels_ordered) = (
+        read_matrix_from_file("files_and_counts.pickle"),
+        read_labels_from_file("labels_ordered.pickle"),
+    );
+
+    println!("{:?}", all_files);
     // let tfidf_matrix = get_tfdif_vectors(deserialised_files_and_counts);
 
     // get_naive_bayes_predictions(tfidf_matrix, labels_ordered);
 
     // save_matrix_to_file(tfidf_matrix, "matrix.pickle");
-
 
     let end = PreciseTime::now();
     println!("This program took {} seconds to run", start.to(end));

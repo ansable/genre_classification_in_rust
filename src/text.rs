@@ -3,7 +3,9 @@ use std;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-pub fn read_filenames_and_labels(train_labels_file: &str) -> Vec<(std::string::String, std::string::String)> {
+pub fn read_filenames_and_labels(
+    train_labels_file: &str,
+) -> Vec<(std::string::String, std::string::String)> {
     let train_labels_file = File::open(train_labels_file).expect("File not found");
     let buf = BufReader::new(train_labels_file);
 
