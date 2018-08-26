@@ -22,9 +22,9 @@ extern crate serde;
 extern crate serde_pickle;
 
 extern crate rusty_machine;
-use rusty_machine::learning::naive_bayes::{NaiveBayes, Gaussian};
-use rusty_machine::linalg::Matrix;
 use rusty_machine::learning::SupModel;
+use rusty_machine::learning::naive_bayes::{Gaussian, NaiveBayes};
+use rusty_machine::linalg::Matrix;
 
 use std::fs;
 
@@ -36,7 +36,6 @@ use preprocessing::VOCAB;
 use preprocessing::preprocess_file;
 
 mod text;
-use text::Text;
 use text::read_filenames_and_labels;
 
 // function to get tokens from the whole training corpus
@@ -44,13 +43,13 @@ fn get_tokens_and_counts_from_corpus(
     train_directory: &str,
     train_labels_file: &str,
     filter_stopwords: bool,
-) -> (Vec<Vec<(std::string::String, usize)>>, Vec<Text>) {
+) -> (Vec<Vec<(std::string::String, usize)>>, Vec<std::string::String>) {
     let train_dir = fs::read_dir(train_directory).unwrap();
 
     let mut all_files: Vec<Vec<(std::string::String, usize)>> = vec![];
 
-    let filenames_and_labels: Vec<Text> = read_filenames_and_labels(train_labels_file);
-    let mut filenames_and_labels_ordered: Vec<Text> = vec![];
+    let filenames_and_labels: Vec<(std::string::String, std::string::String)> = read_filenames_and_labels(train_labels_file);
+    let mut labels_ordered: Vec<std::string::String> = vec![];
 
     for (count, train_file) in train_dir.enumerate() {
         let train_file_path = train_file.unwrap().path();
@@ -61,17 +60,17 @@ fn get_tokens_and_counts_from_corpus(
 
         let mut filename_found = false;
 
-        for text in filenames_and_labels.iter().cloned() {
-            if text.filename == train_file_short {
-                filenames_and_labels_ordered.push(text);
+        for (filename, label) in filenames_and_labels.iter() {
+            if filename == train_file_short {
+                labels_ordered.push(label.to_string());
                 filename_found = true;
-                break;
+                break
             }
         }
 
         if !filename_found {
             println!("{:?}{}", train_file_short, " wasn't found in labels file!");
-            continue;
+            continue
         }
 
         println!("{:?}", train_file_short);
@@ -84,13 +83,14 @@ fn get_tokens_and_counts_from_corpus(
             None => continue,
         }
     }
-    (all_files, filenames_and_labels_ordered)
+    (all_files, labels_ordered)
 }
 
 fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f64>> {
     println!("{}", "Creating tf-idf vectors...");
     let mut tfidf_vectors: Vec<Vec<f64>> = vec![];
-    for doc in &all_files {
+    for (count, doc) in all_files.iter().enumerate() {
+        println!("{:?}", count);
         let mut tfidf_vector: Vec<f64> = vec![0f64; VOCAB.lock().unwrap().len()];
 
         for word in doc.iter() {
@@ -107,12 +107,17 @@ fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>) -> Vec<V
     tfidf_vectors
 }
 
-fn save_matrix_to_file(matrix: Vec<Vec<f64>>, file: &str) -> () {
+fn save_matrix_to_file(matrix: Vec<std::string::String>, file: &str) -> () {
     let matrix_pickled = serde_pickle::to_vec(&matrix, true).unwrap();
     fs::write(file, matrix_pickled).expect("Unable to write to file");
 }
 
-fn read_matrix_from_file(file: &str) -> Vec<Vec<f64>> {
+fn read_matrix_from_file1(file: &str) -> Vec<Vec<(std::string::String, usize)>> {
+    let matrix = fs::read(file).expect("Unable to read file");
+    serde_pickle::from_slice(&matrix).unwrap()
+}
+
+fn read_matrix_from_file2(file: &str) -> Vec<std::string::String> {
     let matrix = fs::read(file).expect("Unable to read file");
     serde_pickle::from_slice(&matrix).unwrap()
 }
@@ -122,13 +127,15 @@ fn read_matrix_from_file(file: &str) -> Vec<Vec<f64>> {
 //     tfidf_vectors.svd(false, true);
 // }
 
-fn genre_labels_to_numbers(texts: Vec<Text>) -> (usize, usize, Vec<Vec<f64>>) {
+fn genre_labels_to_numbers(labels: Vec<std::string::String>) -> Vec<Vec<f64>> {
     let mut labels_as_numbers: Vec<Vec<f64>> = vec![];
-    let rows = texts.len();
+    let rows = labels.len();
 
-    for text in texts.iter().cloned() {
+    for label in labels {
+        let label_as_string: std::string::String = label.to_owned();
+        let label_as_slice: &str = &label_as_string[..];
 
-        match &*text.label {
+        match label_as_slice {
             "detective" => labels_as_numbers.push(vec![1.0, 0.0, 0.0, 0.0, 0.0]),
             "erotica" => labels_as_numbers.push(vec![0.0, 1.0, 0.0, 0.0, 0.0]),
             "horror" => labels_as_numbers.push(vec![0.0, 0.0, 1.0, 0.0, 0.0]),
@@ -137,7 +144,7 @@ fn genre_labels_to_numbers(texts: Vec<Text>) -> (usize, usize, Vec<Vec<f64>>) {
             _ => continue,
         }
     }
-    (rows, 5, labels_as_numbers) // 5 is the number of different labels
+    labels_as_numbers
 }
 
 fn matrix_to_vec(matrix: Vec<Vec<f64>>) -> (usize, usize, Vec<f64>) {
@@ -154,9 +161,10 @@ fn matrix_to_vec(matrix: Vec<Vec<f64>>) -> (usize, usize, Vec<f64>) {
 }
 
 // this one doesn't seem to be working at all, but we can give it another chance on a larger data set
-fn get_naive_bayes_predictions(file_matrix: Vec<Vec<f64>>, texts: Vec<Text>) -> () {
+fn get_naive_bayes_predictions(file_matrix: Vec<Vec<f64>>, texts: Vec<std::string::String>) -> () {
     let (file_rows, file_cols, file_matrix_flat) = matrix_to_vec(file_matrix);
-    let (label_rows, label_cols, text_labels_as_numbers) = matrix_to_vec(genre_labels_to_numbers(texts).2);
+    let (label_rows, label_cols, text_labels_as_numbers) =
+        matrix_to_vec(genre_labels_to_numbers(texts));
 
     let inputs = Matrix::new(file_rows, file_cols, file_matrix_flat);
     let labels = Matrix::new(label_rows, label_cols, text_labels_as_numbers);
@@ -174,27 +182,29 @@ fn get_naive_bayes_predictions(file_matrix: Vec<Vec<f64>>, texts: Vec<Text>) -> 
 fn main() {
     let start = PreciseTime::now();
 
-    let matches = parse_args();
+    // let matches = parse_args();
 
-    let train_dir = matches.value_of("TRAIN_DIR").unwrap_or("./train");
+    // let train_dir = matches.value_of("TRAIN_DIR").unwrap_or("./train");
 
-    let train_labels_file = matches
-        .value_of("TRAIN_LABELS")
-        .unwrap_or("labels_train.txt"); // TODO change this to exit instead, no default here!
+    // let train_labels_file = matches
+    //     .value_of("TRAIN_LABELS")
+    //     .unwrap_or("labels_train.txt"); // TODO change this to exit instead, no default here!
 
-    let (all_files, filenames_and_labels_ordered) = get_tokens_and_counts_from_corpus(
-        train_dir,
-        train_labels_file,
-        matches.is_present("stopwords"),
-    );
+    // let (all_files, labels_ordered) = get_tokens_and_counts_from_corpus(
+    //     train_dir,
+    //     train_labels_file,
+    //     matches.is_present("stopwords"),
+    // );
 
-    let tfidf_matrix = get_tfdif_vectors(all_files);
+    let deserialised_files_and_counts = read_matrix_from_file1("files_and_counts.pickle");
+    let labels_ordered = read_matrix_from_file2("labels_ordered.pickle");
 
-    get_naive_bayes_predictions(tfidf_matrix, filenames_and_labels_ordered);
+    // let tfidf_matrix = get_tfdif_vectors(deserialised_files_and_counts);
+
+    // get_naive_bayes_predictions(tfidf_matrix, labels_ordered);
 
     // save_matrix_to_file(tfidf_matrix, "matrix.pickle");
 
-    // let deserialised_matrix = read_matrix_from_file("minimatrix.pickle");
 
     let end = PreciseTime::now();
     println!("This program took {} seconds to run", start.to(end));
