@@ -6,12 +6,8 @@ use std::fs::File;
 use std::io::Read;
 
 extern crate scanlex;
-//use scanlex::{Scanner, Token};
 
 use stopwords::{Language, Spark, Stopwords};
-
-extern crate ngrams;
-//use ngrams::Ngram;
 
 use select::document::Document;
 use select::predicate::Attr;
@@ -131,12 +127,6 @@ fn stopword(word: std::string::String) -> bool {
 
     stopwords.contains(&word)
 }
-
-// // function to make ngrams out of everything
-// fn make_ngrams<'a>(n: usize, text: &'a str) -> Vec<std::vec::Vec<&str>> {
-//     let mut ngrams: Vec<_> = text.split(' ').ngrams(n).collect();
-//     return ngrams;
-// }
 
 // main preprocessing function, where text is identified and True/False (stopwords) is in parameters
 pub fn preprocess_file(
