@@ -87,17 +87,6 @@ fn get_tokens_and_counts_from_corpus(
     (all_files, labels_ordered)
 }
 
-// this function is only necessary if the files and counts are being read from pickled files
-fn build_vocab(all_files: &Vec<Vec<(std::string::String, usize)>>) -> () {
-    for (i, doc) in all_files.iter().enumerate() {
-        println!("{}{:?}", "Document number: ", i);
-        for (word, _count) in doc {
-            if !VOCAB.lock().unwrap().contains(&word) {
-                VOCAB.lock().unwrap().push(word.to_string());
-            }
-        }
-    }
-}
 
 fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>, mut vocab: Vec<std::string::String>) -> Vec<Vec<f64>> {
     println!("{}", "Creating tf-idf vectors...");
@@ -112,7 +101,7 @@ fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>, mut voca
         println!("{}{:?}{}{}", "Idf section: ", i, " / ", vocab.len());
         let mut word_in_document_count = 0;
         for doc in all_files.iter() {
-            for (w, c) in doc.iter() {
+            for (w, _c) in doc.iter() {
                 if w == word {
                     word_in_document_count += 1;
                     break;
@@ -121,8 +110,6 @@ fn get_tfdif_vectors(all_files: Vec<Vec<(std::string::String, usize)>>, mut voca
         }
         word_idf_scores.push((all_files.len() as f64 / word_in_document_count as f64).log2());
     }
-
-    save_vector_to_file(&word_idf_scores, "idf_correct.pickle");
 
     for (i, doc) in all_files.iter().enumerate() {
         println!("{}{:?}", "Tf section: ", i);
@@ -150,30 +137,20 @@ fn save_matrix_to_file(matrix: Vec<Vec<f64>>, file: &str) -> () {
     fs::write(file, matrix_pickled).expect("Unable to write to file");
 }
 
-fn save_vector_to_file(vector: &Vec<f64>, file: &str) -> () {
-    let vector_pickled = serde_pickle::to_vec(vector, true).unwrap();
-    fs::write(file, vector_pickled).expect("Unable to write to file");
-}
-
 fn read_matrix_from_file(file: &str) -> Vec<Vec<f64>> {
     let matrix = fs::read(file).expect("Unable to read file");
     serde_pickle::from_slice(&matrix).unwrap()
 }
 
-fn read_complex_matrix_from_file(file: &str) -> Vec<Vec<(std::string::String, usize)>> {
-    let matrix = fs::read(file).expect("Unable to read file");
-    serde_pickle::from_slice(&matrix).unwrap()
+fn save_vector_to_file(vector: Vec<std::string::String>, file: &str) -> () {
+    let vector_pickled = serde_pickle::to_vec(&vector, true).unwrap();
+    fs::write(file, vector_pickled).expect("Unable to write to file");
 }
 
-fn read_strings_from_file(file: &str) -> Vec<std::string::String> {
-    let strings = fs::read(file).expect("Unable to read file");
-    serde_pickle::from_slice(&strings).unwrap()
+fn read_vector_from_file(file: &str) -> Vec<std::string::String> {
+    let vector = fs::read(file).expect("Unable to read file");
+    serde_pickle::from_slice(&vector).unwrap()
 }
-
-// fn read_vec_from_file(file: &str) -> Vec<f64> {
-//     let vec = fs::read(file).expect("Unable to read file");
-//     serde_pickle::from_slice(&vec).unwrap()
-// }
 
 // fn perform_svd(tfidf_vectors: Array2<f64>) {
 //     // TODO even if we can somehow make this work for Array2, we will need to convert our Vec<Vec<f64>> into one
@@ -182,7 +159,6 @@ fn read_strings_from_file(file: &str) -> Vec<std::string::String> {
 
 fn genre_labels_to_numbers(labels: Vec<std::string::String>) -> Vec<Vec<f64>> {
     let mut labels_as_numbers: Vec<Vec<f64>> = vec![];
-    let rows = labels.len();
 
     for label in labels {
         let label_as_string: std::string::String = label.to_owned();
@@ -249,19 +225,8 @@ fn main() {
     //     matches.is_present("stopwords"),
     // );
 
-    // let deserialised_files_and_counts = read_matrix_from_file("files_and_counts.pickle");
-    // let labels_ordered = read_labels_from_file("labels_ordered.pickle");
-
-    let (all_files, labels_ordered) = (
-        read_complex_matrix_from_file("files_and_counts.pickle"),
-        read_strings_from_file("labels_ordered.pickle"),
-    );
-
-    let vocab = read_strings_from_file("vocab.pickle");
-
-    let tfidf_matrix = get_tfdif_vectors(all_files, vocab);
-
-    save_matrix_to_file(tfidf_matrix, "matrix_correct.pickle");
+    let labels_ordered = read_vector_from_file("labels_ordered.pickle");
+    let tfidf_matrix = read_matrix_from_file("matrix_correct.pickle");
 
     // get_naive_bayes_predictions(tfidf_matrix, labels_ordered);
 
