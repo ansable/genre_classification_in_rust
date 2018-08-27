@@ -45,11 +45,11 @@ Newsflash.html detective
 noble_bachelor.txt detective
 nothing_equation.txt scifi
 Old_House.html horror
-old_man.txt_detective
+old_man.txt detective
 old_mansion.txt horror
 Olivebranch.html detective
 opera_haystack.txt scifi
-owls_ear.txt_detective
+owls_ear.txt detective
 parlor_car.txt horror
 peter.txt detective
 phantom_of_opera.txt horror
