@@ -36,6 +36,7 @@ fn type_of_file(filename: &str) -> &str {
 fn read_html_file(
     filename: &str,
     filter_stopwords: bool,
+    training_mode: bool,
 ) -> Result<Vec<(std::string::String, usize)>, std::io::Error> {
     let file = File::open(filename).expect("File not found");
     let document = Document::from_read(file);
@@ -51,26 +52,32 @@ fn read_html_file(
         }
     }
 
-    return Ok(tokenize_and_count(&text, filter_stopwords));
+    return Ok(tokenize_and_count(&text, filter_stopwords, training_mode));
 }
 
 // Takes text file as argument, returns its contents as a vector of tokens
 fn read_txt_file(
     filename: &str,
     filter_stopwords: bool,
+    training_mode: bool,
 ) -> Result<Vec<(std::string::String, usize)>, std::io::Error> {
     let mut file = File::open(filename).expect("Could not open file");
     let mut contents = String::new();
     file.read_to_string(&mut contents)
         .expect("Error encountered while processing file");
 
-    return Ok(tokenize_and_count(&contents, filter_stopwords));
+    return Ok(tokenize_and_count(
+        &contents,
+        filter_stopwords,
+        training_mode,
+    ));
 }
 
 // function to tokenize text, count tokens and build vocabulary
 pub fn tokenize_and_count<'a>(
     text: &'a str,
     filter_stopwords: bool,
+    training_mode: bool,
 ) -> Vec<(std::string::String, usize)> {
     let text = &str::replace(text, "'", " "); // scanlex crashes and burns upon encountering
 
@@ -90,8 +97,14 @@ pub fn tokenize_and_count<'a>(
                 }
             }
 
-            if !VOCAB.lock().unwrap().contains(&current_word) {
-                VOCAB.lock().unwrap().push(current_word.to_string());
+            if training_mode {
+                if !VOCAB.lock().unwrap().contains(&current_word) {
+                    VOCAB.lock().unwrap().push(current_word.to_string());
+                }
+            } else {
+                if !VOCAB.lock().unwrap().contains(&current_word) {
+                    continue;
+                }
             }
 
             let mut token_in_tokens = false;
@@ -132,10 +145,11 @@ fn stopword(word: std::string::String) -> bool {
 pub fn preprocess_file(
     filename: &str,
     filter_stopwords: bool,
+    training_mode: bool,
 ) -> Option<Vec<(std::string::String, usize)>> {
     match type_of_file(filename) {
-        "txt" => Some(read_txt_file(filename, filter_stopwords).unwrap()),
-        "html" => Some(read_html_file(filename, filter_stopwords).unwrap()),
+        "txt" => Some(read_txt_file(filename, filter_stopwords, training_mode).unwrap()),
+        "html" => Some(read_html_file(filename, filter_stopwords, training_mode).unwrap()),
         _ => None,
     }
 }
