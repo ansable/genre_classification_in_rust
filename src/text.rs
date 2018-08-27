@@ -4,10 +4,10 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 pub fn read_filenames_and_labels(
-    train_labels_file: &str,
+    labels_file: &str,
 ) -> Vec<(std::string::String, std::string::String)> {
-    let train_labels_file = File::open(train_labels_file).expect("File not found");
-    let buf = BufReader::new(train_labels_file);
+    let labels_file = File::open(labels_file).expect("File not found");
+    let buf = BufReader::new(labels_file);
 
     let lines: Vec<std::string::String> = buf.lines()
         .map(|l| l.expect("Line could not be processed"))
