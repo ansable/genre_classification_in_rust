@@ -82,8 +82,13 @@ pub fn tokenize_and_count<'a>(
     let text = &str::replace(text, "'", " "); // scanlex crashes and burns upon encountering
 
     let mut scanner = scanlex::Scanner::new(&text);
-
     let mut tokens_and_counts: Vec<(std::string::String, usize)> = vec![];
+
+    let stopwords: Vec<_> = Spark::stopwords(Language::English)
+        .unwrap()
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
 
     loop {
         let current_token = scanner.get();
@@ -92,7 +97,7 @@ pub fn tokenize_and_count<'a>(
             let current_word = &current_token.to_iden().unwrap().to_lowercase();
 
             if filter_stopwords {
-                if stopword(current_word.to_string()) {
+                if stopwords.contains(&current_word.to_string()) {
                     continue;
                 }
             }
@@ -126,19 +131,7 @@ pub fn tokenize_and_count<'a>(
             break;
         }
     }
-
     tokens_and_counts
-}
-
-// function to apply stopwords
-fn stopword(word: std::string::String) -> bool {
-    let stopwords: Vec<_> = Spark::stopwords(Language::English)
-        .unwrap()
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
-
-    stopwords.contains(&word)
 }
 
 // main preprocessing function, where text is identified and True/False (stopwords) is in parameters
