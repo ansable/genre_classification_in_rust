@@ -209,22 +209,25 @@ fn matrix_to_vec(matrix: Vec<Vec<f64>>) -> (usize, usize, Vec<f64>) {
 
 // this one doesn't seem to be working at all, but we can give it another chance on a larger data set
 fn get_naive_bayes_predictions(
-    file_matrix: Vec<Vec<f64>>,
+    train_matrix: Vec<Vec<f64>>,
+    test_matrix: Vec<Vec<f64>>,
     label_vec: &Vec<std::string::String>,
 ) -> Matrix<f64> {
-    let (file_rows, file_cols, file_matrix_flat) = matrix_to_vec(file_matrix);
+    let (train_rows, train_cols, train_matrix_flat) = matrix_to_vec(train_matrix);
+    let (test_rows, test_cols, test_matrix_flat) = matrix_to_vec(test_matrix);
     let (label_rows, label_cols, text_labels_as_numbers) =
         matrix_to_vec(genre_labels_to_numbers(label_vec.to_vec()));
 
-    let inputs = Matrix::new(file_rows, file_cols, file_matrix_flat);
+    let train = Matrix::new(train_rows, train_cols, train_matrix_flat);
+    let test = Matrix::new(test_rows, test_cols, test_matrix_flat);
     let labels = Matrix::new(label_rows, label_cols, text_labels_as_numbers);
 
     let mut model = NaiveBayes::<Multinomial>::new();
 
     println!("{}", "Training Naive Bayes model...");
-    model.train(&inputs, &labels).unwrap();
+    model.train(&train, &labels).unwrap();
 
-    model.predict(&inputs).unwrap() // predict based on trained data to see if model works at all
+    model.predict(&test).unwrap()
 }
 
 fn save_pred_labels_to_vec(matrix: Matrix<f64>) -> Vec<std::string::String> {
@@ -357,14 +360,16 @@ fn main() {
     //     false,
     // );
 
-    // let tfidf_matrix_train = read_matrix_from_compressed_file("models/matrix_train.pickle.zip");
-    // let labels_train = read_vector_from_compressed_file("models/labels_train.pickle.zip");
+    println!("{:?}", "Loading training document matrix...");
+    let tfidf_matrix_train = read_matrix_from_compressed_file("models/matrix_train.pickle.zip");
+    let labels_train = read_vector_from_compressed_file("models/labels_train.pickle.zip");
 
+    println!("{:?}", "Loading test document matrix...");
     let tfidf_matrix_test = read_matrix_from_compressed_file("models/matrix_test.pickle.zip");
     let labels_test = read_vector_from_compressed_file("models/labels_test.pickle.zip");
 
     let pred =
-        save_pred_labels_to_vec(get_naive_bayes_predictions(tfidf_matrix_test, &labels_test));
+        save_pred_labels_to_vec(get_naive_bayes_predictions(tfidf_matrix_train, tfidf_matrix_test, &labels_train));
 
     let (precision, recall, f1) = macro_averaged_evaluation(labels_test, pred);
 
