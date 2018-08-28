@@ -2,8 +2,9 @@
 //to understand what comes from what
 //TODO: order them afterwards according common sense
 use std;
-use std::fs::File;
 use std::io::Read;
+
+use zip;
 
 extern crate scanlex;
 
@@ -23,6 +24,7 @@ lazy_static! {
 fn type_of_file(filename: &str) -> &str {
     let split_filename: Vec<&str> = filename.split(".").collect();
 
+    // match against string following last dot in filename (should indicate file type)
     match split_filename[split_filename.len() - 1] {
         "txt" => "txt",
         "html" => "html",
@@ -34,11 +36,10 @@ fn type_of_file(filename: &str) -> &str {
 // following crate was consulted for reference:
 // https://github.com/utkarshkukreti/select.rs/blob/master/tests/node_tests.rs
 fn read_html_file(
-    filename: &str,
+    file: zip::read::ZipFile,
     filter_stopwords: bool,
     training_mode: bool,
 ) -> Result<Vec<(std::string::String, usize)>, std::io::Error> {
-    let file = File::open(filename).expect("File not found");
     let document = Document::from_read(file);
 
     let mut text = String::from(" ");
@@ -57,11 +58,10 @@ fn read_html_file(
 
 // Takes text file as argument, returns its contents as a vector of tokens
 fn read_txt_file(
-    filename: &str,
+    mut file: zip::read::ZipFile,
     filter_stopwords: bool,
     training_mode: bool,
 ) -> Result<Vec<(std::string::String, usize)>, std::io::Error> {
-    let mut file = File::open(filename).expect("Could not open file");
     let mut contents = String::new();
     file.read_to_string(&mut contents)
         .expect("Error encountered while processing file");
@@ -136,13 +136,15 @@ pub fn tokenize_and_count<'a>(
 
 // main preprocessing function, where text is identified and True/False (stopwords) is in parameters
 pub fn preprocess_file(
-    filename: &str,
+    file: zip::read::ZipFile,
     filter_stopwords: bool,
     training_mode: bool,
 ) -> Option<Vec<(std::string::String, usize)>> {
+    let sanitized_name = file.sanitized_name();
+    let filename = sanitized_name.to_str().unwrap();
     match type_of_file(filename) {
-        "txt" => Some(read_txt_file(filename, filter_stopwords, training_mode).unwrap()),
-        "html" => Some(read_html_file(filename, filter_stopwords, training_mode).unwrap()),
+        "txt" => Some(read_txt_file(file, filter_stopwords, training_mode).unwrap()),
+        "html" => Some(read_html_file(file, filter_stopwords, training_mode).unwrap()),
         _ => None,
     }
 }

@@ -41,7 +41,7 @@ use text::read_filenames_and_labels;
 
 // function to get tokens from the whole training corpus
 fn get_tokens_and_counts_from_corpus(
-    directory: &str,
+    corpus_path: &str,
     labels_file: &str,
     filter_stopwords: bool,
     training_mode: bool,
@@ -49,25 +49,28 @@ fn get_tokens_and_counts_from_corpus(
     Vec<Vec<(std::string::String, usize)>>,
     Vec<std::string::String>,
 ) {
-    let dir = fs::read_dir(directory).unwrap();
+    let zip_file = File::open(corpus_path).expect("Unable to read archive");
+    let mut zip_archive = ZipArchive::new(zip_file).unwrap();
 
-    let mut files: Vec<Vec<(std::string::String, usize)>> = vec![];
+    let mut files_and_counts: Vec<Vec<(std::string::String, usize)>> = vec![];
 
     let filenames_and_labels: Vec<(std::string::String, std::string::String)> =
         read_filenames_and_labels(labels_file);
     let mut labels_ordered: Vec<std::string::String> = vec![];
 
-    for (count, file) in dir.enumerate() {
-        let file_path = file.unwrap().path();
-        let file_full: &str = file_path.to_str().unwrap();
-        let file_as_vec: Vec<&str> = file_full.split("/").collect();
+    for i in 1..zip_archive.len() {
+        let file = zip_archive.by_index(i).unwrap();
+        let sanitized_name = file.sanitized_name();
+        let filename = sanitized_name.to_str().unwrap();
 
-        let file_short = file_as_vec[file_as_vec.len() - 1]; // gets filename after the last slash
+        let filename_as_vec: Vec<&str> = filename.split("/").collect();
+
+        let filename_short = filename_as_vec[filename_as_vec.len() - 1]; // gets filename after the last slash
 
         let mut filename_found = false;
 
-        for (filename, label) in filenames_and_labels.iter() {
-            if filename == file_short {
+        for (name, label) in filenames_and_labels.iter() {
+            if name == filename_short {
                 labels_ordered.push(label.to_string());
                 filename_found = true;
                 break;
@@ -75,21 +78,21 @@ fn get_tokens_and_counts_from_corpus(
         }
 
         if !filename_found {
-            println!("{:?}{}", file_short, " wasn't found in labels file!");
+            println!("{:?}{}", filename_short, " wasn't found in labels file!");
             continue;
         }
 
-        println!("{:?}", file_short);
-        println!("{:?}", count + 1);
+        println!("{:?}", filename_short);
+        println!("{:?}", i);
 
-        let file_vector = preprocess_file(file_full, filter_stopwords, training_mode);
+        let file_vector = preprocess_file(file, filter_stopwords, training_mode);
 
         match file_vector {
-            Some(v) => files.push(v),
+            Some(v) => files_and_counts.push(v),
             None => continue,
         }
     }
-    (files, labels_ordered)
+    (files_and_counts, labels_ordered)
 }
 
 fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f64>> {
@@ -225,13 +228,13 @@ fn main() {
 
     // let matches = parse_args();
 
-    // let train_dir = matches.value_of("TRAIN_DIR").unwrap_or("./train");
+    // let train_dir = matches.value_of("TRAIN_CORPUS").unwrap_or("./train.zip");
 
     // let train_labels_file = matches
     //     .value_of("TRAIN_LABELS")
     //     .unwrap_or("labels_train.txt"); // TODO change this to exit instead, no default here!
 
-    // let test_dir = matches.value_of("TEST_DIR").unwrap_or("./test");
+    // let test_dir = matches.value_of("TEST_CORPUS").unwrap_or("./test.zip");
 
     // let test_labels_file = matches.value_of("TEST_LABELS").unwrap_or("labels_test.txt"); // TODO change this to exit instead, no default here!
 

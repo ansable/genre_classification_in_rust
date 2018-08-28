@@ -29,14 +29,14 @@ pub fn parse_args() -> ArgMatches<'static> {
                 .required(true),
         )
         .arg(
-            Arg::with_name("TRAIN_DIR")
-                .help("Directory containing files for training (default: ./train)")
+            Arg::with_name("TRAIN_CORPUS")
+                .help("Zipped directory containing files for training (default: ./train.zip)")
                 .index(3)
                 .required(false),
         )
         .arg(
-            Arg::with_name("TEST_DIR")
-                .help("Directory containing files for testing (default: ./test)")
+            Arg::with_name("TEST_CORPUS")
+                .help("Zipped directory containing files for testing (default: ./test.zip)")
                 .index(4)
                 .required(false),
         )
