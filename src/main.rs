@@ -3,6 +3,8 @@ extern crate scanlex;
 extern crate select;
 extern crate stopwords;
 extern crate time;
+extern crate zip;
+use zip::ZipArchive;
 
 use time::PreciseTime;
 
@@ -24,6 +26,8 @@ use rusty_machine::learning::naive_bayes::{Multinomial, NaiveBayes};
 use rusty_machine::linalg::Matrix;
 
 use std::fs;
+use std::fs::File;
+use std::io::Read;
 
 mod args;
 use args::parse_args;
@@ -137,9 +141,13 @@ fn save_matrix_to_file(matrix: Vec<Vec<f64>>, file: &str) -> () {
     fs::write(file, matrix_pickled).expect("Unable to write to file");
 }
 
-fn read_matrix_from_file(file: &str) -> Vec<Vec<f64>> {
-    let matrix = fs::read(file).expect("Unable to read file");
-    serde_pickle::from_slice(&matrix).unwrap()
+fn read_matrix_from_compressed_file(zip_file: &str) -> Vec<Vec<f64>> {
+    let zip_file = File::open(zip_file).expect("Unable to read archive");
+    let mut zip_archive = ZipArchive::new(zip_file).unwrap();
+    let mut f = zip_archive.by_index(0).unwrap(); // zip file cannot be accessed directly, has to be read from a zip archive
+    let mut contents = Vec::new();
+    f.read_to_end(&mut contents).unwrap();
+    serde_pickle::from_slice(&contents).unwrap()
 }
 
 fn save_vector_to_file(vector: Vec<std::string::String>, file: &str) -> () {
@@ -147,9 +155,13 @@ fn save_vector_to_file(vector: Vec<std::string::String>, file: &str) -> () {
     fs::write(file, vector_pickled).expect("Unable to write to file");
 }
 
-fn read_vector_from_file(file: &str) -> Vec<std::string::String> {
-    let vector = fs::read(file).expect("Unable to read file");
-    serde_pickle::from_slice(&vector).unwrap()
+fn read_vector_from_compressed_file(zip_file: &str) -> Vec<std::string::String> {
+    let zip_file = File::open(zip_file).expect("Unable to read archive");
+    let mut zip_archive = ZipArchive::new(zip_file).unwrap();
+    let mut f = zip_archive.by_index(0).unwrap();
+    let mut contents = Vec::new();
+    f.read_to_end(&mut contents).unwrap();
+    serde_pickle::from_slice(&contents).unwrap()
 }
 
 // fn perform_svd(tfidf_vectors: Array2<f64>) {
@@ -237,11 +249,11 @@ fn main() {
     //     false,
     // );
 
-    let tfidf_matrix_train = read_matrix_from_file("matrix_train.pickle");
-    let labels_train = read_vector_from_file("labels_train.pickle");
+    let tfidf_matrix_train = read_matrix_from_compressed_file("models/matrix_train.pickle.zip");
+    let labels_train = read_vector_from_compressed_file("models/labels_train.pickle.zip");
 
-    let tfidf_matrix_test = read_matrix_from_file("matrix_test.pickle");
-    let labels_test = read_vector_from_file("labels_test.pickle");
+    let tfidf_matrix_test = read_matrix_from_compressed_file("models/matrix_test.pickle.zip");
+    let labels_test = read_vector_from_compressed_file("models/labels_test.pickle.zip");
 
     // get_naive_bayes_predictions(tfidf_matrix_train, labels_train);
 
