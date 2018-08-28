@@ -29,6 +29,9 @@ use std::fs;
 use std::fs::File;
 use std::io::Read;
 
+use std::collections::HashSet;
+use std::iter::FromIterator;
+
 mod args;
 use args::parse_args;
 
@@ -205,22 +208,127 @@ fn matrix_to_vec(matrix: Vec<Vec<f64>>) -> (usize, usize, Vec<f64>) {
 }
 
 // this one doesn't seem to be working at all, but we can give it another chance on a larger data set
-fn get_naive_bayes_predictions(file_matrix: Vec<Vec<f64>>, texts: Vec<std::string::String>) -> () {
-    let (file_rows, file_cols, file_matrix_flat) = matrix_to_vec(file_matrix);
+fn get_naive_bayes_predictions(
+    train_matrix: Vec<Vec<f64>>,
+    test_matrix: Vec<Vec<f64>>,
+    label_vec: &Vec<std::string::String>,
+) -> Matrix<f64> {
+    let (train_rows, train_cols, train_matrix_flat) = matrix_to_vec(train_matrix);
+    let (test_rows, test_cols, test_matrix_flat) = matrix_to_vec(test_matrix);
     let (label_rows, label_cols, text_labels_as_numbers) =
-        matrix_to_vec(genre_labels_to_numbers(texts));
+        matrix_to_vec(genre_labels_to_numbers(label_vec.to_vec()));
 
-    let inputs = Matrix::new(file_rows, file_cols, file_matrix_flat);
+    let train = Matrix::new(train_rows, train_cols, train_matrix_flat);
+    let test = Matrix::new(test_rows, test_cols, test_matrix_flat);
     let labels = Matrix::new(label_rows, label_cols, text_labels_as_numbers);
 
     let mut model = NaiveBayes::<Multinomial>::new();
 
     println!("{}", "Training Naive Bayes model...");
-    model.train(&inputs, &labels).unwrap();
+    model.train(&train, &labels).unwrap();
 
-    let predictions = model.predict(&inputs).unwrap();
+    model.predict(&test).unwrap()
+}
 
-    println!("{:?}", predictions);
+fn save_pred_labels_to_vec(matrix: Matrix<f64>) -> Vec<std::string::String> {
+    let mut preds = vec![];
+    for i in 0..matrix.data().len() {
+        if matrix.data()[i] == 1.0 {
+            match i % 5 {
+                0 => preds.push(String::from("detective")),
+                1 => preds.push(String::from("erotica")),
+                2 => preds.push(String::from("horror")),
+                3 => preds.push(String::from("romance")),
+                4 => preds.push(String::from("scifi")),
+                _ => continue,
+            }
+        }
+    }
+    preds
+}
+
+// Precision: out of the times a label was predicted, {return values} of the time the system was in fact correct
+fn precision(
+    gold: &Vec<std::string::String>,
+    pred: &Vec<std::string::String>,
+    label: std::string::String,
+) -> f64 {
+    assert_eq!(
+        gold.len(),
+        pred.len(),
+        "Label vectors must have the same length"
+    );
+
+    let mut total_predicted_for_label = 0;
+    let mut true_positive_for_label = 0;
+
+    if !pred.contains(&label) {
+        return 0.0;
+    }
+
+    for i in 0..pred.len() {
+        if pred[i] == label {
+            total_predicted_for_label += 1;
+            if gold[i] == label {
+                true_positive_for_label += 1;
+            }
+        }
+    }
+    true_positive_for_label as f64 / total_predicted_for_label as f64
+}
+
+// Recall: out of the times a label should have been predicted, {return value} of the labels were correctly predicted
+fn recall(
+    gold: &Vec<std::string::String>,
+    pred: &Vec<std::string::String>,
+    label: std::string::String,
+) -> f64 {
+    let mut total_gold_for_label = 0;
+    let mut true_positive_for_label = 0;
+
+    if !gold.contains(&label) {
+        return 0.0;
+    }
+
+    for i in 0..gold.len() {
+        if gold[i] == label {
+            total_gold_for_label += 1;
+            if pred[i] == label {
+                true_positive_for_label += 1;
+            }
+        }
+    }
+    true_positive_for_label as f64 / total_gold_for_label as f64
+}
+
+// F1: harmonic average of precision and recall
+fn f1_score(precision: f64, recall: f64) -> f64 {
+    if precision + recall == 0.0 {
+        return 0.0;
+    }
+
+    2.0 * precision * recall / (precision + recall)
+}
+
+fn macro_averaged_evaluation(gold: Vec<std::string::String>, pred: Vec<std::string::String>) -> (f64, f64, f64) {
+    let mut macro_averaged_precision = 0.0;
+    let mut macro_averaged_recall = 0.0;
+    let mut macro_averaged_f1_score = 0.0;
+
+    // the following line assumes every label appears at least once in the training data
+    let labels_set: HashSet<std::string::String> = HashSet::from_iter(gold.iter().cloned());
+
+    for label in labels_set.iter() {
+        macro_averaged_precision += precision(&gold, &pred, label.to_string());
+        macro_averaged_recall += recall(&gold, &pred, label.to_string());
+    }
+
+    macro_averaged_precision = macro_averaged_precision / labels_set.len() as f64;
+    macro_averaged_recall = macro_averaged_recall / labels_set.len() as f64;
+    macro_averaged_f1_score = f1_score(macro_averaged_precision, macro_averaged_recall);
+
+
+    (macro_averaged_precision, macro_averaged_recall, macro_averaged_f1_score)
 }
 
 fn main() {
@@ -252,13 +360,22 @@ fn main() {
     //     false,
     // );
 
+    println!("{:?}", "Loading training document matrix...");
     let tfidf_matrix_train = read_matrix_from_compressed_file("models/matrix_train.pickle.zip");
     let labels_train = read_vector_from_compressed_file("models/labels_train.pickle.zip");
 
+    println!("{:?}", "Loading test document matrix...");
     let tfidf_matrix_test = read_matrix_from_compressed_file("models/matrix_test.pickle.zip");
     let labels_test = read_vector_from_compressed_file("models/labels_test.pickle.zip");
 
-    // get_naive_bayes_predictions(tfidf_matrix_train, labels_train);
+    let pred =
+        save_pred_labels_to_vec(get_naive_bayes_predictions(tfidf_matrix_train, tfidf_matrix_test, &labels_train));
+
+    let (precision, recall, f1) = macro_averaged_evaluation(labels_test, pred);
+
+    println!("{}{:?}", "Precision: ", precision);
+    println!("{}{:?}", "Recall: ", recall);
+    println!("{}{:?}", "F1 score: ", f1);
 
     let end = PreciseTime::now();
     println!("This program took {} seconds to run", start.to(end));
