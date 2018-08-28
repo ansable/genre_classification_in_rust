@@ -205,10 +205,13 @@ fn matrix_to_vec(matrix: Vec<Vec<f64>>) -> (usize, usize, Vec<f64>) {
 }
 
 // this one doesn't seem to be working at all, but we can give it another chance on a larger data set
-fn get_naive_bayes_predictions(file_matrix: Vec<Vec<f64>>, texts: Vec<std::string::String>) -> Matrix<f64> {
+fn get_naive_bayes_predictions(
+    file_matrix: Vec<Vec<f64>>,
+    label_vec: &Vec<std::string::String>,
+) -> Matrix<f64> {
     let (file_rows, file_cols, file_matrix_flat) = matrix_to_vec(file_matrix);
     let (label_rows, label_cols, text_labels_as_numbers) =
-        matrix_to_vec(genre_labels_to_numbers(texts));
+        matrix_to_vec(genre_labels_to_numbers(label_vec.to_vec()));
 
     let inputs = Matrix::new(file_rows, file_cols, file_matrix_flat);
     let labels = Matrix::new(label_rows, label_cols, text_labels_as_numbers);
@@ -221,21 +224,72 @@ fn get_naive_bayes_predictions(file_matrix: Vec<Vec<f64>>, texts: Vec<std::strin
     model.predict(&inputs).unwrap() // predict based on trained data to see if model works at all
 }
 
-fn save_pred_labels_to_vec<'a>(matrix: Matrix<f64>) -> Vec<&'a str> {
+fn save_pred_labels_to_vec(matrix: Matrix<f64>) -> Vec<std::string::String> {
     let mut preds = vec![];
     for i in 0..matrix.data().len() {
         if matrix.data()[i] == 1.0 {
-            match i%5 {
-                0 => preds.push("detective"),
-                1 => preds.push("erotica"),
-                2 => preds.push("horror"),
-                3 => preds.push("romance"),
-                4 => preds.push("scifi"),
+            match i % 5 {
+                0 => preds.push(String::from("detective")),
+                1 => preds.push(String::from("erotica")),
+                2 => preds.push(String::from("horror")),
+                3 => preds.push(String::from("romance")),
+                4 => preds.push(String::from("scifi")),
                 _ => continue,
             }
         }
     }
     preds
+}
+
+// Precision: out of the times a label was predicted, {return values} of the time the system was in fact correct
+fn precision(
+    gold: &Vec<std::string::String>,
+    pred: &Vec<std::string::String>,
+    label: std::string::String,
+) -> f64 {
+    assert_eq!(
+        gold.len(),
+        pred.len(),
+        "Label vectors must have the same length"
+    );
+
+    let mut total_predicted_for_label = 0;
+    let mut true_positive_for_label = 0;
+
+    for i in 0..pred.len() {
+        if pred[i] == label {
+            total_predicted_for_label += 1;
+            if gold[i] == label {
+                true_positive_for_label += 1;
+            }
+        }
+    }
+    true_positive_for_label as f64 / total_predicted_for_label as f64
+}
+
+// Recall: out of the times a label should have been predicted, {return value} of the labels were correctly predicted
+fn recall(
+    gold: &Vec<std::string::String>,
+    pred: &Vec<std::string::String>,
+    label: std::string::String,
+) -> f64 {
+    let mut total_gold_for_label = 0;
+    let mut true_positive_for_label = 0;
+
+    for i in 0..gold.len() {
+        if gold[i] == label {
+            total_gold_for_label += 1;
+            if pred[i] == label {
+                true_positive_for_label += 1;
+            }
+        }
+    }
+    true_positive_for_label as f64 / total_gold_for_label as f64
+}
+
+// F1: harmonic average of precision and recall
+fn f1_score(precision: f64, recall: f64) -> f64 {
+    2.0 * precision * recall / (precision + recall)
 }
 
 fn main() {
@@ -272,10 +326,17 @@ fn main() {
 
     let tfidf_matrix_test = read_matrix_from_compressed_file("models/matrix_test.pickle.zip");
     let labels_test = read_vector_from_compressed_file("models/labels_test.pickle.zip");
-    println!("{:?}", labels_test);
 
-    let preds = save_pred_labels_to_vec(get_naive_bayes_predictions(tfidf_matrix_test, labels_test));
-    println!("{:?}", preds);
+    let pred =
+        save_pred_labels_to_vec(get_naive_bayes_predictions(tfidf_matrix_test, &labels_test));
+
+    let precision = precision(&labels_test, &pred, String::from("detective"));
+    let recall = recall(&labels_test, &pred, String::from("detective"));
+    let f1 = f1_score(precision, recall);
+
+    println!("{:?}", precision);
+    println!("{:?}", recall);
+    println!("{:?}", f1);
 
     let end = PreciseTime::now();
     println!("This program took {} seconds to run", start.to(end));
