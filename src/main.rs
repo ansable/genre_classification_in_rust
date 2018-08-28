@@ -29,6 +29,9 @@ use std::fs;
 use std::fs::File;
 use std::io::Read;
 
+use std::collections::HashSet;
+use std::iter::FromIterator;
+
 mod args;
 use args::parse_args;
 
@@ -256,6 +259,10 @@ fn precision(
     let mut total_predicted_for_label = 0;
     let mut true_positive_for_label = 0;
 
+    if !pred.contains(&label) {
+        return 0.0;
+    }
+
     for i in 0..pred.len() {
         if pred[i] == label {
             total_predicted_for_label += 1;
@@ -276,6 +283,10 @@ fn recall(
     let mut total_gold_for_label = 0;
     let mut true_positive_for_label = 0;
 
+    if !gold.contains(&label) {
+        return 0.0;
+    }
+
     for i in 0..gold.len() {
         if gold[i] == label {
             total_gold_for_label += 1;
@@ -289,7 +300,32 @@ fn recall(
 
 // F1: harmonic average of precision and recall
 fn f1_score(precision: f64, recall: f64) -> f64 {
+    if precision + recall == 0.0 {
+        return 0.0;
+    }
+
     2.0 * precision * recall / (precision + recall)
+}
+
+fn macro_averaged_evaluation(gold: Vec<std::string::String>, pred: Vec<std::string::String>) -> (f64, f64, f64) {
+    let mut macro_averaged_precision = 0.0;
+    let mut macro_averaged_recall = 0.0;
+    let mut macro_averaged_f1_score = 0.0;
+
+    // the following line assumes every label appears at least once in the training data
+    let labels_set: HashSet<std::string::String> = HashSet::from_iter(gold.iter().cloned());
+
+    for label in labels_set.iter() {
+        macro_averaged_precision += precision(&gold, &pred, label.to_string());
+        macro_averaged_recall += recall(&gold, &pred, label.to_string());
+    }
+
+    macro_averaged_precision = macro_averaged_precision / labels_set.len() as f64;
+    macro_averaged_recall = macro_averaged_recall / labels_set.len() as f64;
+    macro_averaged_f1_score = f1_score(macro_averaged_precision, macro_averaged_recall);
+
+
+    (macro_averaged_precision, macro_averaged_recall, macro_averaged_f1_score)
 }
 
 fn main() {
@@ -330,13 +366,11 @@ fn main() {
     let pred =
         save_pred_labels_to_vec(get_naive_bayes_predictions(tfidf_matrix_test, &labels_test));
 
-    let precision = precision(&labels_test, &pred, String::from("detective"));
-    let recall = recall(&labels_test, &pred, String::from("detective"));
-    let f1 = f1_score(precision, recall);
+    let (precision, recall, f1) = macro_averaged_evaluation(labels_test, pred);
 
-    println!("{:?}", precision);
-    println!("{:?}", recall);
-    println!("{:?}", f1);
+    println!("{}{:?}", "Precision: ", precision);
+    println!("{}{:?}", "Recall: ", recall);
+    println!("{}{:?}", "F1 score: ", f1);
 
     let end = PreciseTime::now();
     println!("This program took {} seconds to run", start.to(end));
