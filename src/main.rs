@@ -20,7 +20,7 @@ extern crate serde_pickle;
 
 extern crate rusty_machine;
 use rusty_machine::learning::SupModel;
-use rusty_machine::learning::naive_bayes::{Gaussian, NaiveBayes};
+use rusty_machine::learning::naive_bayes::{Multinomial, NaiveBayes};
 use rusty_machine::linalg::Matrix;
 
 use std::fs;
@@ -37,32 +37,33 @@ use text::read_filenames_and_labels;
 
 // function to get tokens from the whole training corpus
 fn get_tokens_and_counts_from_corpus(
-    train_directory: &str,
-    train_labels_file: &str,
+    directory: &str,
+    labels_file: &str,
     filter_stopwords: bool,
+    training_mode: bool,
 ) -> (
     Vec<Vec<(std::string::String, usize)>>,
     Vec<std::string::String>,
 ) {
-    let train_dir = fs::read_dir(train_directory).unwrap();
+    let dir = fs::read_dir(directory).unwrap();
 
-    let mut all_files: Vec<Vec<(std::string::String, usize)>> = vec![];
+    let mut files: Vec<Vec<(std::string::String, usize)>> = vec![];
 
     let filenames_and_labels: Vec<(std::string::String, std::string::String)> =
-        read_filenames_and_labels(train_labels_file);
+        read_filenames_and_labels(labels_file);
     let mut labels_ordered: Vec<std::string::String> = vec![];
 
-    for (count, train_file) in train_dir.enumerate() {
-        let train_file_path = train_file.unwrap().path();
-        let train_file_full: &str = train_file_path.to_str().unwrap();
-        let train_file_as_vec: Vec<&str> = train_file_full.split("/").collect();
+    for (count, file) in dir.enumerate() {
+        let file_path = file.unwrap().path();
+        let file_full: &str = file_path.to_str().unwrap();
+        let file_as_vec: Vec<&str> = file_full.split("/").collect();
 
-        let train_file_short = train_file_as_vec[train_file_as_vec.len() - 1]; // gets filename after the last slash
+        let file_short = file_as_vec[file_as_vec.len() - 1]; // gets filename after the last slash
 
         let mut filename_found = false;
 
         for (filename, label) in filenames_and_labels.iter() {
-            if filename == train_file_short {
+            if filename == file_short {
                 labels_ordered.push(label.to_string());
                 filename_found = true;
                 break;
@@ -70,39 +71,34 @@ fn get_tokens_and_counts_from_corpus(
         }
 
         if !filename_found {
-            println!("{:?}{}", train_file_short, " wasn't found in labels file!");
+            println!("{:?}{}", file_short, " wasn't found in labels file!");
             continue;
         }
 
-        println!("{:?}", train_file_short);
+        println!("{:?}", file_short);
         println!("{:?}", count + 1);
 
-        let file_vector = preprocess_file(train_file_full, filter_stopwords);
+        let file_vector = preprocess_file(file_full, filter_stopwords, training_mode);
 
         match file_vector {
-            Some(v) => all_files.push(v),
+            Some(v) => files.push(v),
             None => continue,
         }
     }
-    (all_files, labels_ordered)
+    (files, labels_ordered)
 }
 
-fn get_tfdif_vectors(
-    all_files: Vec<Vec<(std::string::String, usize)>>,
-    mut vocab: Vec<std::string::String>,
-) -> Vec<Vec<f64>> {
+fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f64>> {
     println!("{}", "Creating tf-idf vectors...");
     let mut tfidf_vectors: Vec<Vec<f64>> = vec![];
     let mut word_idf_scores: Vec<f64> = vec![];
 
-    if VOCAB.lock().unwrap().len() > 0 {
-        vocab = VOCAB.lock().unwrap().to_vec();
-    }
+    let vocab = VOCAB.lock().unwrap().to_vec();
 
     for (i, word) in vocab.iter().enumerate() {
-        println!("{}{:?}{}{}", "Idf section: ", i, " / ", vocab.len());
+        println!("{}{:?}{}{}", "Idf section: ", i + 1, " / ", vocab.len());
         let mut word_in_document_count = 0;
-        for doc in all_files.iter() {
+        for doc in files.iter() {
             for (w, _c) in doc.iter() {
                 if w == word {
                     word_in_document_count += 1;
@@ -110,11 +106,16 @@ fn get_tfdif_vectors(
                 }
             }
         }
-        word_idf_scores.push((all_files.len() as f64 / word_in_document_count as f64).log2());
+
+        if word_in_document_count > 0 {
+            word_idf_scores.push((files.len() as f64 / word_in_document_count as f64).log2());
+        } else {
+            word_idf_scores.push(0f64); // word_in_document_count can be 0 when analysing test set
+        }
     }
 
-    for (i, doc) in all_files.iter().enumerate() {
-        println!("{}{:?}", "Tf section: ", i);
+    for (i, doc) in files.iter().enumerate() {
+        println!("{}{:?}{}{}", "Tf section: ", i + 1, " / ", files.len());
         let mut tfidf_vector: Vec<f64> = vec![0f64; vocab.len()];
 
         let mut total_words = 0;
@@ -124,7 +125,7 @@ fn get_tfdif_vectors(
 
         for (word, count) in doc.iter() {
             let position = vocab.iter().position(|t| t == word).unwrap();
-            tfidf_vector[position] = *count as f64 / total_words as f64 * word_idf_scores[i];
+            tfidf_vector[position] = *count as f64 / total_words as f64 * word_idf_scores[position];
         }
         tfidf_vectors.push(tfidf_vector);
     }
@@ -197,7 +198,7 @@ fn get_naive_bayes_predictions(file_matrix: Vec<Vec<f64>>, texts: Vec<std::strin
     let inputs = Matrix::new(file_rows, file_cols, file_matrix_flat);
     let labels = Matrix::new(label_rows, label_cols, text_labels_as_numbers);
 
-    let mut model = NaiveBayes::<Gaussian>::new();
+    let mut model = NaiveBayes::<Multinomial>::new();
 
     println!("{}", "Training Naive Bayes model...");
     model.train(&inputs, &labels).unwrap();
@@ -218,16 +219,31 @@ fn main() {
     //     .value_of("TRAIN_LABELS")
     //     .unwrap_or("labels_train.txt"); // TODO change this to exit instead, no default here!
 
-    // let (all_files, labels_ordered) = get_tokens_and_counts_from_corpus(
+    // let test_dir = matches.value_of("TEST_DIR").unwrap_or("./test");
+
+    // let test_labels_file = matches.value_of("TEST_LABELS").unwrap_or("labels_test.txt"); // TODO change this to exit instead, no default here!
+
+    // let (train_files_and_counts, labels_train) = get_tokens_and_counts_from_corpus(
     //     train_dir,
     //     train_labels_file,
     //     matches.is_present("stopwords"),
+    //     true,
     // );
 
-    let labels_ordered = read_vector_from_file("labels_ordered.pickle");
-    let tfidf_matrix = read_matrix_from_file("matrix.pickle");
+    // let (test_files_and_counts, labels_test) = get_tokens_and_counts_from_corpus(
+    //     test_dir,
+    //     test_labels_file,
+    //     matches.is_present("stopwords"),
+    //     false,
+    // );
 
-    // get_naive_bayes_predictions(tfidf_matrix, labels_ordered);
+    let tfidf_matrix_train = read_matrix_from_file("matrix_train.pickle");
+    let labels_train = read_vector_from_file("labels_train.pickle");
+
+    let tfidf_matrix_test = read_matrix_from_file("matrix_test.pickle");
+    let labels_test = read_vector_from_file("labels_test.pickle");
+
+    // get_naive_bayes_predictions(tfidf_matrix_train, labels_train);
 
     let end = PreciseTime::now();
     println!("This program took {} seconds to run", start.to(end));
