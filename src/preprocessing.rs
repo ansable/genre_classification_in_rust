@@ -1,20 +1,17 @@
-//so far i ordered all imports according to functions, so it would be easier for you
-//to understand what comes from what
-//TODO: order them afterwards according common sense
 use std;
 use std::io::Read;
+use std::sync::Mutex;
 
-use zip;
-
-extern crate scanlex;
-
-use stopwords::{Language, Spark, Stopwords};
+use scanlex;
 
 use select::document::Document;
 use select::predicate::Attr;
 use select::predicate::Name;
 
-use std::sync::Mutex;
+use stopwords::{Language, Spark, Stopwords};
+
+use zip;
+
 
 lazy_static! {
     pub static ref VOCAB: Mutex<Vec<std::string::String>> = Mutex::new(vec![]);

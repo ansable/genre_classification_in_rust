@@ -1,141 +1,39 @@
 extern crate clap;
+extern crate la;
+#[macro_use]
+extern crate lazy_static;
+extern crate rusty_machine;
 extern crate scanlex;
 extern crate select;
+extern crate serde;
+extern crate serde_pickle;
 extern crate stopwords;
 extern crate time;
 extern crate zip;
-use zip::ZipArchive;
 
-use std::fs::File;
+use la::Matrix as Matrix1; //TODO: rename it to some laMatrix
+use la::SVD;
+
+use rusty_machine::learning::naive_bayes::{Multinomial, NaiveBayes};
+use rusty_machine::learning::SupModel;
+use rusty_machine::linalg::Matrix;
 
 use time::PreciseTime;
-
-#[macro_use]
-extern crate lazy_static;
-
-extern crate la;
-use la::SVD;
-//TODO: rename it to some laMatrix
-use la::Matrix as Matrix1;
-
-extern crate serde;
-extern crate serde_pickle;
-
-extern crate rusty_machine;
-use rusty_machine::learning::SupModel;
-use rusty_machine::learning::naive_bayes::{Multinomial, NaiveBayes};
-use rusty_machine::linalg::Matrix;
 
 mod args;
 use args::parse_args;
 
-mod preprocessing;
-use preprocessing::VOCAB;
-use preprocessing::preprocess_file;
-
-mod text;
-use text::read_filenames_and_labels;
-
 mod eval;
 use eval::macro_averaged_evaluation;
+
+mod model;
+use model::{get_word_counts_from_corpus, get_tfdif_vectors};
+
+mod preprocessing;
 
 mod save;
 use save::{read_vector_from_compressed_file, read_matrix_from_compressed_file};
 
-// function to get tokens from the whole training corpus
-fn get_tokens_and_counts_from_corpus(
-    corpus_path: &str,
-    labels_file: &str,
-    filter_stopwords: bool,
-    training_mode: bool,
-) -> (
-    Vec<Vec<(std::string::String, usize)>>,
-    Vec<std::string::String>,
-) {
-    let zip_file = File::open(corpus_path).expect("Unable to read archive");
-    let mut zip_archive = ZipArchive::new(zip_file).unwrap();
-
-    let mut files_and_counts: Vec<Vec<(std::string::String, usize)>> = vec![];
-
-    let filenames_and_labels: Vec<(std::string::String, std::string::String)> =
-        read_filenames_and_labels(labels_file);
-    let mut labels_ordered: Vec<std::string::String> = vec![];
-    let number_of_files = zip_archive.len();
-
-    for i in 1..number_of_files {
-        let file = zip_archive.by_index(i).unwrap();
-        let sanitized_name = file.sanitized_name();
-        let filename = sanitized_name.to_str().unwrap();
-
-        let filename_as_vec: Vec<&str> = filename.split("/").collect();
-
-        let filename_short = filename_as_vec[filename_as_vec.len() - 1]; // gets filename after the last slash
-
-        let mut filename_found = false;
-
-        for (name, label) in filenames_and_labels.iter() {
-            if name == filename_short {
-                labels_ordered.push(label.to_string());
-                filename_found = true;
-                break;
-            }
-        }
-
-        if !filename_found {
-            println!("{:?}{}", filename_short, " wasn't found in labels file!");
-            continue;
-        }
-
-        println!("{}{}{}{}{}{:?}", "Processing document [", i, " / ", number_of_files-1, "] : ", filename_short);
-
-        let file_vector = preprocess_file(file, filter_stopwords, training_mode);
-
-        match file_vector {
-            Some(v) => files_and_counts.push(v),
-            None => continue,
-        }
-    }
-    (files_and_counts, labels_ordered)
-}
-
-fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f64>> {
-    let mut tfidf_vectors: Vec<Vec<f64>> = vec![];
-    let mut word_idf_scores: Vec<f64> = vec![];
-
-    let vocab = VOCAB.lock().unwrap().to_vec();
-
-    for word in vocab.iter() {
-        let mut word_in_document_count = 0;
-        for doc in files.iter() {
-            match doc.binary_search_by_key(&word, |&(ref w, _c)| w) {
-                Ok(_) => word_in_document_count += 1,
-                Err(_) => continue,
-            }
-        }
-
-        if word_in_document_count > 0 {
-            word_idf_scores.push((files.len() as f64 / word_in_document_count as f64).log2());
-        } else {
-            word_idf_scores.push(0f64); // word_in_document_count can be 0 when analysing test set
-        }
-    }
-
-    for doc in files.iter() {
-        let mut tfidf_vector: Vec<f64> = vec![0f64; vocab.len()];
-
-        let mut total_words = 0;
-        for (_word, count) in doc.iter() {
-            total_words += count;
-        }
-
-        for (word, count) in doc.iter() {
-            let position = vocab.binary_search(&word).unwrap();
-            tfidf_vector[position] = *count as f64 / total_words as f64 * word_idf_scores[position];
-        }
-        tfidf_vectors.push(tfidf_vector);
-    }
-    tfidf_vectors
-}
 
 fn genre_labels_to_numbers(labels: Vec<std::string::String>) -> Vec<Vec<f64>> {
     let mut labels_as_numbers: Vec<Vec<f64>> = vec![];
@@ -272,25 +170,25 @@ fn main() {
         let test_labels_file = args.value_of("TEST_LABELS").unwrap_or("labels_test.txt");
 
         println!("{}", "Extracting word counts for training data...");
-        let (train_files_and_counts, labels_train) = get_tokens_and_counts_from_corpus(
+        let (train_files_and_counts, labels_train) = get_word_counts_from_corpus(
             train_dir,
             train_labels_file,
             args.is_present("stopwords"),
             true,
         );
 
-        println!("{}", "Creating training document matrix...");
+        println!("{}", "Creating training term-document matrix...");
         let tfidf_matrix_train = get_tfdif_vectors(train_files_and_counts);
 
         println!("{}", "Extracting word counts for test data...");
-        let (test_files_and_counts, labels_test) = get_tokens_and_counts_from_corpus(
+        let (test_files_and_counts, labels_test) = get_word_counts_from_corpus(
             test_dir,
             test_labels_file,
             args.is_present("stopwords"),
             false,
         );
 
-        println!("{}", "Creating test document matrix...");
+        println!("{}", "Creating test term-document matrix...");
         let tfidf_matrix_test = get_tfdif_vectors(test_files_and_counts);
 
 
