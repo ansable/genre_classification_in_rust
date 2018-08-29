@@ -3,6 +3,8 @@ extern crate scanlex;
 extern crate select;
 extern crate stopwords;
 extern crate time;
+extern crate zip;
+use zip::ZipArchive;
 
 use time::PreciseTime;
 
@@ -26,6 +28,11 @@ use rusty_machine::learning::naive_bayes::{Multinomial, NaiveBayes};
 use rusty_machine::linalg::Matrix;
 
 use std::fs;
+use std::fs::File;
+use std::io::Read;
+
+use std::collections::HashSet;
+use std::iter::FromIterator;
 
 mod args;
 use args::parse_args;
@@ -39,7 +46,7 @@ use text::read_filenames_and_labels;
 
 // function to get tokens from the whole training corpus
 fn get_tokens_and_counts_from_corpus(
-    directory: &str,
+    corpus_path: &str,
     labels_file: &str,
     filter_stopwords: bool,
     training_mode: bool,
@@ -47,25 +54,28 @@ fn get_tokens_and_counts_from_corpus(
     Vec<Vec<(std::string::String, usize)>>,
     Vec<std::string::String>,
 ) {
-    let dir = fs::read_dir(directory).unwrap();
+    let zip_file = File::open(corpus_path).expect("Unable to read archive");
+    let mut zip_archive = ZipArchive::new(zip_file).unwrap();
 
-    let mut files: Vec<Vec<(std::string::String, usize)>> = vec![];
+    let mut files_and_counts: Vec<Vec<(std::string::String, usize)>> = vec![];
 
     let filenames_and_labels: Vec<(std::string::String, std::string::String)> =
         read_filenames_and_labels(labels_file);
     let mut labels_ordered: Vec<std::string::String> = vec![];
 
-    for (count, file) in dir.enumerate() {
-        let file_path = file.unwrap().path();
-        let file_full: &str = file_path.to_str().unwrap();
-        let file_as_vec: Vec<&str> = file_full.split("/").collect();
+    for i in 1..zip_archive.len() {
+        let file = zip_archive.by_index(i).unwrap();
+        let sanitized_name = file.sanitized_name();
+        let filename = sanitized_name.to_str().unwrap();
 
-        let file_short = file_as_vec[file_as_vec.len() - 1]; // gets filename after the last slash
+        let filename_as_vec: Vec<&str> = filename.split("/").collect();
+
+        let filename_short = filename_as_vec[filename_as_vec.len() - 1]; // gets filename after the last slash
 
         let mut filename_found = false;
 
-        for (filename, label) in filenames_and_labels.iter() {
-            if filename == file_short {
+        for (name, label) in filenames_and_labels.iter() {
+            if name == filename_short {
                 labels_ordered.push(label.to_string());
                 filename_found = true;
                 break;
@@ -73,21 +83,21 @@ fn get_tokens_and_counts_from_corpus(
         }
 
         if !filename_found {
-            println!("{:?}{}", file_short, " wasn't found in labels file!");
+            println!("{:?}{}", filename_short, " wasn't found in labels file!");
             continue;
         }
 
-        println!("{:?}", file_short);
-        println!("{:?}", count + 1);
+        println!("{:?}", filename_short);
+        println!("{:?}", i);
 
-        let file_vector = preprocess_file(file_full, filter_stopwords, training_mode);
+        let file_vector = preprocess_file(file, filter_stopwords, training_mode);
 
         match file_vector {
-            Some(v) => files.push(v),
+            Some(v) => files_and_counts.push(v),
             None => continue,
         }
     }
-    (files, labels_ordered)
+    (files_and_counts, labels_ordered)
 }
 
 fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f64>> {
@@ -139,9 +149,13 @@ fn save_matrix_to_file(matrix: Vec<Vec<f64>>, file: &str) -> () {
     fs::write(file, matrix_pickled).expect("Unable to write to file");
 }
 
-fn read_matrix_from_file(file: &str) -> Vec<Vec<f64>> {
-    let matrix = fs::read(file).expect("Unable to read file");
-    serde_pickle::from_slice(&matrix).unwrap()
+fn read_matrix_from_compressed_file(zip_file: &str) -> Vec<Vec<f64>> {
+    let zip_file = File::open(zip_file).expect("Unable to read archive");
+    let mut zip_archive = ZipArchive::new(zip_file).unwrap();
+    let mut f = zip_archive.by_index(0).unwrap(); // zip file cannot be accessed directly, has to be read from a zip archive
+    let mut contents = Vec::new();
+    f.read_to_end(&mut contents).unwrap();
+    serde_pickle::from_slice(&contents).unwrap()
 }
 
 fn save_vector_to_file(vector: Vec<std::string::String>, file: &str) -> () {
@@ -149,9 +163,13 @@ fn save_vector_to_file(vector: Vec<std::string::String>, file: &str) -> () {
     fs::write(file, vector_pickled).expect("Unable to write to file");
 }
 
-fn read_vector_from_file(file: &str) -> Vec<std::string::String> {
-    let vector = fs::read(file).expect("Unable to read file");
-    serde_pickle::from_slice(&vector).unwrap()
+fn read_vector_from_compressed_file(zip_file: &str) -> Vec<std::string::String> {
+    let zip_file = File::open(zip_file).expect("Unable to read archive");
+    let mut zip_archive = ZipArchive::new(zip_file).unwrap();
+    let mut f = zip_archive.by_index(0).unwrap();
+    let mut contents = Vec::new();
+    f.read_to_end(&mut contents).unwrap();
+    serde_pickle::from_slice(&contents).unwrap()
 }
 
 // fn perform_svd(tfidf_vectors: Array2<f64>) {
@@ -243,22 +261,127 @@ fn svd_to_matrix(double: (SVD<f64>,Matrix1<f64>),n_elements:usize) -> () {
 //    println!("{:?}", transform1);
 }
 // this one doesn't seem to be working at all, but we can give it another chance on a larger data set
-fn get_naive_bayes_predictions(file_matrix: Vec<Vec<f64>>, texts: Vec<std::string::String>) -> () {
-    let (file_rows, file_cols, file_matrix_flat) = matrix_to_vec(file_matrix);
+fn get_naive_bayes_predictions(
+    train_matrix: Vec<Vec<f64>>,
+    test_matrix: Vec<Vec<f64>>,
+    label_vec: &Vec<std::string::String>,
+) -> Matrix<f64> {
+    let (train_rows, train_cols, train_matrix_flat) = matrix_to_vec(train_matrix);
+    let (test_rows, test_cols, test_matrix_flat) = matrix_to_vec(test_matrix);
     let (label_rows, label_cols, text_labels_as_numbers) =
-        matrix_to_vec(genre_labels_to_numbers(texts));
+        matrix_to_vec(genre_labels_to_numbers(label_vec.to_vec()));
 
-    let inputs = Matrix::new(file_rows, file_cols, file_matrix_flat);
+    let train = Matrix::new(train_rows, train_cols, train_matrix_flat);
+    let test = Matrix::new(test_rows, test_cols, test_matrix_flat);
     let labels = Matrix::new(label_rows, label_cols, text_labels_as_numbers);
 
     let mut model = NaiveBayes::<Multinomial>::new();
 
     println!("{}", "Training Naive Bayes model...");
-    model.train(&inputs, &labels).unwrap();
+    model.train(&train, &labels).unwrap();
 
-    let predictions = model.predict(&inputs).unwrap();
+    model.predict(&test).unwrap()
+}
 
-    println!("{:?}", predictions);
+fn save_pred_labels_to_vec(matrix: Matrix<f64>) -> Vec<std::string::String> {
+    let mut preds = vec![];
+    for i in 0..matrix.data().len() {
+        if matrix.data()[i] == 1.0 {
+            match i % 5 {
+                0 => preds.push(String::from("detective")),
+                1 => preds.push(String::from("erotica")),
+                2 => preds.push(String::from("horror")),
+                3 => preds.push(String::from("romance")),
+                4 => preds.push(String::from("scifi")),
+                _ => continue,
+            }
+        }
+    }
+    preds
+}
+
+// Precision: out of the times a label was predicted, {return values} of the time the system was in fact correct
+fn precision(
+    gold: &Vec<std::string::String>,
+    pred: &Vec<std::string::String>,
+    label: std::string::String,
+) -> f64 {
+    assert_eq!(
+        gold.len(),
+        pred.len(),
+        "Label vectors must have the same length"
+    );
+
+    let mut total_predicted_for_label = 0;
+    let mut true_positive_for_label = 0;
+
+    if !pred.contains(&label) {
+        return 0.0;
+    }
+
+    for i in 0..pred.len() {
+        if pred[i] == label {
+            total_predicted_for_label += 1;
+            if gold[i] == label {
+                true_positive_for_label += 1;
+            }
+        }
+    }
+    true_positive_for_label as f64 / total_predicted_for_label as f64
+}
+
+// Recall: out of the times a label should have been predicted, {return value} of the labels were correctly predicted
+fn recall(
+    gold: &Vec<std::string::String>,
+    pred: &Vec<std::string::String>,
+    label: std::string::String,
+) -> f64 {
+    let mut total_gold_for_label = 0;
+    let mut true_positive_for_label = 0;
+
+    if !gold.contains(&label) {
+        return 0.0;
+    }
+
+    for i in 0..gold.len() {
+        if gold[i] == label {
+            total_gold_for_label += 1;
+            if pred[i] == label {
+                true_positive_for_label += 1;
+            }
+        }
+    }
+    true_positive_for_label as f64 / total_gold_for_label as f64
+}
+
+// F1: harmonic average of precision and recall
+fn f1_score(precision: f64, recall: f64) -> f64 {
+    if precision + recall == 0.0 {
+        return 0.0;
+    }
+
+    2.0 * precision * recall / (precision + recall)
+}
+
+fn macro_averaged_evaluation(gold: Vec<std::string::String>, pred: Vec<std::string::String>) -> (f64, f64, f64) {
+    let mut macro_averaged_precision = 0.0;
+    let mut macro_averaged_recall = 0.0;
+    let mut macro_averaged_f1_score = 0.0;
+
+    // the following line assumes every label appears at least once in the training data
+    let labels_set: HashSet<std::string::String> = HashSet::from_iter(gold.iter().cloned());
+
+    for label in labels_set.iter() {
+        macro_averaged_precision += precision(&gold, &pred, label.to_string());
+        macro_averaged_recall += recall(&gold, &pred, label.to_string());
+    }
+
+    macro_averaged_precision = macro_averaged_precision / labels_set.len() as f64;
+    macro_averaged_recall = macro_averaged_recall / labels_set.len() as f64;
+    macro_averaged_f1_score = f1_score(macro_averaged_precision, macro_averaged_recall);
+
+
+    (macro_averaged_precision, macro_averaged_recall, macro_averaged_f1_score)
 }
 
 fn main() {
@@ -266,13 +389,13 @@ fn main() {
 
     // let matches = parse_args();
 
-    // let train_dir = matches.value_of("TRAIN_DIR").unwrap_or("./train");
+    // let train_dir = matches.value_of("TRAIN_CORPUS").unwrap_or("./train.zip");
 
     // let train_labels_file = matches
     //     .value_of("TRAIN_LABELS")
     //     .unwrap_or("labels_train.txt"); // TODO change this to exit instead, no default here!
 
-    // let test_dir = matches.value_of("TEST_DIR").unwrap_or("./test");
+    // let test_dir = matches.value_of("TEST_CORPUS").unwrap_or("./test.zip");
 
     // let test_labels_file = matches.value_of("TEST_LABELS").unwrap_or("labels_test.txt"); // TODO change this to exit instead, no default here!
 
@@ -290,19 +413,16 @@ fn main() {
     //     false,
     // );
 
-    let tfidf_matrix_train = read_matrix_from_file("matrix_train.pickle");
-    let labels_train = read_vector_from_file("labels_train.pickle");
+    println!("{:?}", "Loading training document matrix...");
+    let tfidf_matrix_train = read_matrix_from_compressed_file("models/matrix_train.pickle.zip");
+    let labels_train = read_vector_from_compressed_file("models/labels_train.pickle.zip");
 
-    let tfidf_matrix_test = read_matrix_from_file("matrix_test.pickle");
-    let labels_test = read_vector_from_file("labels_test.pickle");
-    let smth = get_tfdif_vectors(all_files,labels_ordered);
-    svd_to_matrix(perform_svd(smth),2);
-    //so yep this shit works
-    //now it's time to create a matrix
-//    println!("{:?}",svd.get_u());
-   // println!("{:?}",svd.get_s());
-//    println!("{:?}",svd.get_v());
-    // get_naive_bayes_predictions(tfidf_matrix_train, labels_train);
+    println!("{:?}", "Loading test document matrix...");
+    let tfidf_matrix_test = read_matrix_from_compressed_file("models/matrix_test.pickle.zip");
+    let labels_test = read_vector_from_compressed_file("models/labels_test.pickle.zip");
+
+    let pred =
+        save_pred_labels_to_vec(get_naive_bayes_predictions(tfidf_matrix_train, tfidf_matrix_test, &labels_train));
 
     let end = PreciseTime::now();
     println!("This program took {} seconds to run", start.to(end));
