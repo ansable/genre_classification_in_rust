@@ -108,11 +108,9 @@ fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f
         println!("{}{:?}{}{}", "Idf section: ", i + 1, " / ", vocab.len());
         let mut word_in_document_count = 0;
         for doc in files.iter() {
-            for (w, _c) in doc.iter() {
-                if w == word {
-                    word_in_document_count += 1;
-                    break;
-                }
+            match doc.binary_search_by_key(&word, |&(ref w,c)| w) {
+                Ok(w) => word_in_document_count += 1,
+                Err(w) => continue,
             }
         }
 

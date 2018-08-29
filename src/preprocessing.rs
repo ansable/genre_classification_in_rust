@@ -132,7 +132,9 @@ pub fn tokenize_and_count<'a>(
             break;
         }
     }
-    vocab.sort_unstable(); // sort vocab so that we can look for words in O(log n) time using binary search
+    // sort vectors so that we can look for words in O(log n) time using binary search - important for calculating TF-IDF scores
+    vocab.sort_unstable();
+    tokens_and_counts.sort_unstable();
     tokens_and_counts
 }
 
