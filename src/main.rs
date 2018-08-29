@@ -16,9 +16,6 @@ use la::SVD;
 //TODO: rename it to some laMatrix
 use la::Matrix as Matrix1;
 
-extern crate ndarray_linalg;
-use ndarray_linalg::svd::SVD;
-
 extern crate serde;
 extern crate serde_pickle;
 
