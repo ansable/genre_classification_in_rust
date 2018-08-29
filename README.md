@@ -5,10 +5,7 @@
 - **Possible additions and improvements**: data augmentation? mismatch learning? (doubtful we'll have time for this sadly)
 
 # TODO:
-- ndarray SVD
-- classifier (rusty-machine Logistic Regression probably easiest, but we have plenty of material for KNN). rusty machine Naive Bayes doesn't seem to work well for our case
-- if nothing of this works, Ann will dramatically try to implement a simple neural network
-- function(s) for reading zipped models and directories (our current project is almost 1GB large!)
+- classifier (Naive Bayes gives some results, Logistic Regression / KNN could still be considered)
 - refactoring code / breaking up into smaller functions (stopwords could be a start)
 - commenting everything through
 - writing unit tests

@@ -11,8 +11,10 @@ use time::PreciseTime;
 #[macro_use]
 extern crate lazy_static;
 
-extern crate ndarray;
-use ndarray::Array2;
+extern crate la;
+use la::SVD;
+//TODO: rename it to some laMatrix
+use la::Matrix as Matrix1;
 
 extern crate ndarray_linalg;
 use ndarray_linalg::svd::SVD;
@@ -207,6 +209,57 @@ fn matrix_to_vec(matrix: Vec<Vec<f64>>) -> (usize, usize, Vec<f64>) {
     (rows, cols, result_vec)
 }
 
+//SVD (using la crate)
+
+fn perform_svd(matrix: Vec<Vec<f64>>) -> (SVD<f64>, Matrix1<f64>){
+    let (n_rows,n_cols,data) = matrix_to_vec(matrix);
+    let mut la_matrix = Matrix1::new(n_rows,n_cols,data);
+    let svd = SVD::new(&la_matrix);
+    return (svd,la_matrix);
+}
+
+//this thing rn under reconstruction, i dont like shapes im getting
+
+fn svd_to_matrix(double: (SVD<f64>,Matrix1<f64>),n_elements:usize) -> () {
+    let (svd,matrix) = double;
+//    let mut v = svd.get_v();
+//    let v = &Matrix1::sub_matrix(&v,n_elements,v.cols());
+    let mut s = svd.get_s();
+    let mut diagonal = vec![];
+    for i in 0..s.rows() {
+        for x in 0..s.cols() {
+            let item = s.get(i,x);
+            if item!=0.0 {
+                diagonal.push(item);
+            }
+        }
+    }
+    let s = &Matrix1::diag(diagonal);
+    let transform = s.dot(svd.get_u());
+    println!("{:?}", transform);
+//why dont they have a special method for this cases?
+    // great rhetorical question to ask
+    //so here we go
+    // a terribly ineffective iteration
+    //there should be a better way, but i dont have internet so should use my own brains
+
+//    println!("{:?}", diagonal);
+//    //n*n orthogonal, we will not need it, so its more a reference for you
+//    //so you will not have to read bunch of shitty docs
+////    let v = svd.get_v();
+//    //now we have to cut it to n*n matrix built around s diagonal
+//    let new_diagonal = &diagonal[0..n_cols];
+//    let mut first_step = Matrix1::diag(new_diagonal.to_vec());
+//    println!("{:?}", first_step);
+//    let mut smaller_matrix = Matrix1::sub_matrix(&first_step,first_step.rows(),n_elements);
+//    println!("{:?}", smaller_matrix);
+//    //now we're using same selected amount of elements to make a submatrix out of V
+////    let mut v = Matrix1::get_rows(&v,n_elements);
+//    //now we have two ways of getting the matrix we need, so we can check that it was actually
+//    //correctly performed
+//    let transform1 = &u.dot(&smaller_matrix);
+//    println!("{:?}", transform1);
+}
 // this one doesn't seem to be working at all, but we can give it another chance on a larger data set
 fn get_naive_bayes_predictions(
     train_matrix: Vec<Vec<f64>>,
@@ -370,12 +423,6 @@ fn main() {
 
     let pred =
         save_pred_labels_to_vec(get_naive_bayes_predictions(tfidf_matrix_train, tfidf_matrix_test, &labels_train));
-
-    let (precision, recall, f1) = macro_averaged_evaluation(labels_test, pred);
-
-    println!("{}{:?}", "Precision: ", precision);
-    println!("{}{:?}", "Recall: ", recall);
-    println!("{}{:?}", "F1 score: ", f1);
 
     let end = PreciseTime::now();
     println!("This program took {} seconds to run", start.to(end));
