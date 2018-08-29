@@ -83,6 +83,7 @@ pub fn tokenize_and_count<'a>(
 
     let mut scanner = scanlex::Scanner::new(&text);
     let mut tokens_and_counts: Vec<(std::string::String, usize)> = vec![];
+    let mut vocab = VOCAB.lock().unwrap();
 
     let stopwords: Vec<_> = Spark::stopwords(Language::English)
         .unwrap()
@@ -103,11 +104,11 @@ pub fn tokenize_and_count<'a>(
             }
 
             if training_mode {
-                if !VOCAB.lock().unwrap().contains(&current_word) {
-                    VOCAB.lock().unwrap().push(current_word.to_string());
+                if !vocab.contains(&current_word) {
+                    vocab.push(current_word.to_string());
                 }
             } else {
-                if !VOCAB.lock().unwrap().contains(&current_word) {
+                if !vocab.contains(&current_word) {
                     continue;
                 }
             }
@@ -131,6 +132,7 @@ pub fn tokenize_and_count<'a>(
             break;
         }
     }
+    vocab.sort_unstable(); // sort vocab so that we can look for words in O(log n) time using binary search
     tokens_and_counts
 }
 

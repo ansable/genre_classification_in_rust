@@ -133,7 +133,7 @@ fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f
         }
 
         for (word, count) in doc.iter() {
-            let position = vocab.iter().position(|t| t == word).unwrap();
+            let position = vocab.binary_search(&word).unwrap();
             tfidf_vector[position] = *count as f64 / total_words as f64 * word_idf_scores[position];
         }
         tfidf_vectors.push(tfidf_vector);
@@ -169,11 +169,6 @@ fn read_vector_from_compressed_file(zip_file: &str) -> Vec<std::string::String> 
     serde_pickle::from_slice(&contents).unwrap()
 }
 
-// fn perform_svd(tfidf_vectors: Array2<f64>) {
-//     // TODO even if we can somehow make this work for Array2, we will need to convert our Vec<Vec<f64>> into one
-//     tfidf_vectors.svd(false, true);
-// }
-
 fn genre_labels_to_numbers(labels: Vec<std::string::String>) -> Vec<Vec<f64>> {
     let mut labels_as_numbers: Vec<Vec<f64>> = vec![];
 
@@ -207,7 +202,6 @@ fn matrix_to_vec(matrix: Vec<Vec<f64>>) -> (usize, usize, Vec<f64>) {
 }
 
 //SVD (using la crate)
-
 fn perform_svd(matrix: Vec<Vec<f64>>) -> (SVD<f64>, Matrix1<f64>){
     let (n_rows,n_cols,data) = matrix_to_vec(matrix);
     let mut la_matrix = Matrix1::new(n_rows,n_cols,data);
@@ -365,24 +359,27 @@ fn macro_averaged_evaluation(gold: Vec<std::string::String>, pred: Vec<std::stri
 fn main() {
     let start = PreciseTime::now();
 
-    // let matches = parse_args();
+    let matches = parse_args();
 
-    // let train_dir = matches.value_of("TRAIN_CORPUS").unwrap_or("./train.zip");
+    let train_dir = matches.value_of("TRAIN_CORPUS").unwrap_or("./train.zip");
 
-    // let train_labels_file = matches
-    //     .value_of("TRAIN_LABELS")
-    //     .unwrap_or("labels_train.txt"); // TODO change this to exit instead, no default here!
+    let train_labels_file = matches
+        .value_of("TRAIN_LABELS")
+        .unwrap_or("labels_train.txt"); // TODO change this to exit instead, no default here!
 
-    // let test_dir = matches.value_of("TEST_CORPUS").unwrap_or("./test.zip");
+    let test_dir = matches.value_of("TEST_CORPUS").unwrap_or("./test.zip");
 
-    // let test_labels_file = matches.value_of("TEST_LABELS").unwrap_or("labels_test.txt"); // TODO change this to exit instead, no default here!
+    let test_labels_file = matches.value_of("TEST_LABELS").unwrap_or("labels_test.txt"); // TODO change this to exit instead, no default here!
 
-    // let (train_files_and_counts, labels_train) = get_tokens_and_counts_from_corpus(
-    //     train_dir,
-    //     train_labels_file,
-    //     matches.is_present("stopwords"),
-    //     true,
-    // );
+    let (train_files_and_counts, labels_train) = get_tokens_and_counts_from_corpus(
+        train_dir,
+        train_labels_file,
+        matches.is_present("stopwords"),
+        true,
+    );
+
+    let tfidf_matrix_train = get_tfdif_vectors(train_files_and_counts);
+    println!("{:?}", tfidf_matrix_train[0]);
 
     // let (test_files_and_counts, labels_test) = get_tokens_and_counts_from_corpus(
     //     test_dir,
@@ -391,16 +388,28 @@ fn main() {
     //     false,
     // );
 
-    println!("{:?}", "Loading training document matrix...");
-    let tfidf_matrix_train = read_matrix_from_compressed_file("models/matrix_train.pickle.zip");
-    let labels_train = read_vector_from_compressed_file("models/labels_train.pickle.zip");
+    
 
-    println!("{:?}", "Loading test document matrix...");
-    let tfidf_matrix_test = read_matrix_from_compressed_file("models/matrix_test.pickle.zip");
-    let labels_test = read_vector_from_compressed_file("models/labels_test.pickle.zip");
 
-    let pred =
-        save_pred_labels_to_vec(get_naive_bayes_predictions(tfidf_matrix_train, tfidf_matrix_test, &labels_train));
+
+
+
+    // println!("{:?}", "Loading training document matrix...");
+    // let tfidf_matrix_train = read_matrix_from_compressed_file("models/matrix_train.pickle.zip");
+    // let labels_train = read_vector_from_compressed_file("models/labels_train.pickle.zip");
+
+    // println!("{:?}", "Loading test document matrix...");
+    // let tfidf_matrix_test = read_matrix_from_compressed_file("models/matrix_test.pickle.zip");
+    // let labels_test = read_vector_from_compressed_file("models/labels_test.pickle.zip");
+
+    // let pred =
+    //     save_pred_labels_to_vec(get_naive_bayes_predictions(tfidf_matrix_train, tfidf_matrix_test, &labels_train));
+
+    // let (precision, recall, f1) = macro_averaged_evaluation(labels_test, pred);
+
+    // println!("{}{:?}", "Precision: ", precision);
+    // println!("{}{:?}", "Recall: ", precision);
+    // println!("{}{:?}", "F1 score: ", precision);
 
     let end = PreciseTime::now();
     println!("This program took {} seconds to run", start.to(end));
