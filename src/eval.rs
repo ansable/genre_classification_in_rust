@@ -72,7 +72,6 @@ pub fn macro_averaged_evaluation(
 ) -> (f64, f64, f64) {
     let mut macro_averaged_precision = 0.0;
     let mut macro_averaged_recall = 0.0;
-    let mut macro_averaged_f1_score = 0.0;
 
     // the following line assumes every label appears at least once in the training data
     let labels_set: HashSet<std::string::String> = HashSet::from_iter(gold.iter().cloned());
@@ -84,7 +83,7 @@ pub fn macro_averaged_evaluation(
 
     macro_averaged_precision = macro_averaged_precision / labels_set.len() as f64;
     macro_averaged_recall = macro_averaged_recall / labels_set.len() as f64;
-    macro_averaged_f1_score = f1_score(macro_averaged_precision, macro_averaged_recall);
+    let macro_averaged_f1_score = f1_score(macro_averaged_precision, macro_averaged_recall);
 
     (
         macro_averaged_precision,
