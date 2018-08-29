@@ -6,6 +6,8 @@ extern crate time;
 extern crate zip;
 use zip::ZipArchive;
 
+use std::fs::File;
+
 use time::PreciseTime;
 
 #[macro_use]
@@ -24,10 +26,6 @@ use rusty_machine::learning::SupModel;
 use rusty_machine::learning::naive_bayes::{Multinomial, NaiveBayes};
 use rusty_machine::linalg::Matrix;
 
-use std::fs;
-use std::fs::File;
-use std::io::Read;
-
 mod args;
 use args::parse_args;
 
@@ -38,8 +36,11 @@ use preprocessing::preprocess_file;
 mod text;
 use text::read_filenames_and_labels;
 
-mod evaluation;
-use evaluation::macro_averaged_evaluation;
+mod eval;
+use eval::macro_averaged_evaluation;
+
+mod save;
+use save::{read_vector_from_compressed_file, read_matrix_from_compressed_file};
 
 // function to get tokens from the whole training corpus
 fn get_tokens_and_counts_from_corpus(
@@ -98,7 +99,6 @@ fn get_tokens_and_counts_from_corpus(
 }
 
 fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f64>> {
-    println!("{}", "Creating tf-idf vectors...");
     let mut tfidf_vectors: Vec<Vec<f64>> = vec![];
     let mut word_idf_scores: Vec<f64> = vec![];
 
@@ -107,9 +107,9 @@ fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f
     for word in vocab.iter() {
         let mut word_in_document_count = 0;
         for doc in files.iter() {
-            match doc.binary_search_by_key(&word, |&(ref w, c)| w) {
-                Ok(w) => word_in_document_count += 1,
-                Err(w) => continue,
+            match doc.binary_search_by_key(&word, |&(ref w, _c)| w) {
+                Ok(_) => word_in_document_count += 1,
+                Err(_) => continue,
             }
         }
 
@@ -135,34 +135,6 @@ fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f
         tfidf_vectors.push(tfidf_vector);
     }
     tfidf_vectors
-}
-
-fn save_matrix_to_file(matrix: Vec<Vec<f64>>, file: &str) -> () {
-    let matrix_pickled = serde_pickle::to_vec(&matrix, true).unwrap();
-    fs::write(file, matrix_pickled).expect("Unable to write to file");
-}
-
-fn read_matrix_from_compressed_file(zip_file: &str) -> Vec<Vec<f64>> {
-    let zip_file = File::open(zip_file).expect("Unable to read archive");
-    let mut zip_archive = ZipArchive::new(zip_file).unwrap();
-    let mut f = zip_archive.by_index(0).unwrap(); // zip file cannot be accessed directly, has to be read from a zip archive
-    let mut contents = Vec::new();
-    f.read_to_end(&mut contents).unwrap();
-    serde_pickle::from_slice(&contents).unwrap()
-}
-
-fn save_vector_to_file(vector: Vec<std::string::String>, file: &str) -> () {
-    let vector_pickled = serde_pickle::to_vec(&vector, true).unwrap();
-    fs::write(file, vector_pickled).expect("Unable to write to file");
-}
-
-fn read_vector_from_compressed_file(zip_file: &str) -> Vec<std::string::String> {
-    let zip_file = File::open(zip_file).expect("Unable to read archive");
-    let mut zip_archive = ZipArchive::new(zip_file).unwrap();
-    let mut f = zip_archive.by_index(0).unwrap();
-    let mut contents = Vec::new();
-    f.read_to_end(&mut contents).unwrap();
-    serde_pickle::from_slice(&contents).unwrap()
 }
 
 fn genre_labels_to_numbers(labels: Vec<std::string::String>) -> Vec<Vec<f64>> {
