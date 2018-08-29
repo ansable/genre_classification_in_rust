@@ -59,8 +59,9 @@ fn get_tokens_and_counts_from_corpus(
     let filenames_and_labels: Vec<(std::string::String, std::string::String)> =
         read_filenames_and_labels(labels_file);
     let mut labels_ordered: Vec<std::string::String> = vec![];
+    let number_of_files = zip_archive.len();
 
-    for i in 1..zip_archive.len() {
+    for i in 1..number_of_files {
         let file = zip_archive.by_index(i).unwrap();
         let sanitized_name = file.sanitized_name();
         let filename = sanitized_name.to_str().unwrap();
@@ -84,8 +85,7 @@ fn get_tokens_and_counts_from_corpus(
             continue;
         }
 
-        println!("{:?}", filename_short);
-        println!("{:?}", i);
+        println!("{}{}{}{}{}{:?}", "Processing document [", i, " / ", number_of_files-1, "] : ", filename_short);
 
         let file_vector = preprocess_file(file, filter_stopwords, training_mode);
 
@@ -104,7 +104,7 @@ fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f
 
     let vocab = VOCAB.lock().unwrap().to_vec();
 
-    for (i, word) in vocab.iter().enumerate() {
+    for word in vocab.iter() {
         let mut word_in_document_count = 0;
         for doc in files.iter() {
             match doc.binary_search_by_key(&word, |&(ref w, c)| w) {
@@ -120,7 +120,7 @@ fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f
         }
     }
 
-    for (i, doc) in files.iter().enumerate() {
+    for doc in files.iter() {
         let mut tfidf_vector: Vec<f64> = vec![0f64; vocab.len()];
 
         let mut total_words = 0;
@@ -245,7 +245,6 @@ fn get_naive_bayes_predictions(
 
     let mut model = NaiveBayes::<Multinomial>::new();
 
-    println!("{}", "Training Naive Bayes model...");
     model.train(&train, &labels).unwrap();
 
     model.predict(&test).unwrap()
@@ -271,50 +270,71 @@ fn save_pred_labels_to_vec(matrix: Matrix<f64>) -> Vec<std::string::String> {
 fn main() {
     let start = PreciseTime::now();
 
-    let matches = parse_args();
+    let args = parse_args();
 
-    let train_dir = matches.value_of("TRAIN_CORPUS").unwrap_or("./train.zip");
+    if args.is_present("autopilot") { // has to be called as "cargo run -- -a" (so as not to confuse with cargo arguments)
+        println!("{}", "Loading training document matrix...");
+        let tfidf_matrix_train = read_matrix_from_compressed_file("models/matrix_train.pickle.zip");
+        let labels_train = read_vector_from_compressed_file("models/labels_train.pickle.zip");
 
-    let train_labels_file = matches
-        .value_of("TRAIN_LABELS")
-        .unwrap_or("labels_train.txt"); // TODO change this to exit instead, no default here!
+        println!("{}", "Loading test document matrix...");
+        let tfidf_matrix_test = read_matrix_from_compressed_file("models/matrix_test.pickle.zip");
+        let labels_test = read_vector_from_compressed_file("models/labels_test.pickle.zip");
 
-    let test_dir = matches.value_of("TEST_CORPUS").unwrap_or("./test.zip");
+        let pred = save_pred_labels_to_vec(get_naive_bayes_predictions(
+            tfidf_matrix_train,
+            tfidf_matrix_test,
+            &labels_train,
+        ));
 
-    let test_labels_file = matches.value_of("TEST_LABELS").unwrap_or("labels_test.txt"); // TODO change this to exit instead, no default here!
+        let (precision, recall, f1) = macro_averaged_evaluation(labels_test, pred);
 
-    let (train_files_and_counts, labels_train) = get_tokens_and_counts_from_corpus(
-        train_dir,
-        train_labels_file,
-        matches.is_present("stopwords"),
-        true,
-    );
+        println!("{}{:?}", "Precision: ", precision);
+        println!("{}{:?}", "Recall: ", recall);
+        println!("{}{:?}", "F1 score: ", f1);
+    } else {
+        let train_dir = args.value_of("TRAIN_CORPUS").unwrap_or("./train.zip");
+        let test_dir = args.value_of("TEST_CORPUS").unwrap_or("./test.zip");
 
-    let tfidf_matrix_train = get_tfdif_vectors(train_files_and_counts);
+        let train_labels_file = args.value_of("TRAIN_LABELS").unwrap_or("labels_train.txt");
+        let test_labels_file = args.value_of("TEST_LABELS").unwrap_or("labels_test.txt");
 
-    // let (test_files_and_counts, labels_test) = get_tokens_and_counts_from_corpus(
-    //     test_dir,
-    //     test_labels_file,
-    //     matches.is_present("stopwords"),
-    //     false,
-    // );
+        println!("{}", "Extracting word counts for training data...");
+        let (train_files_and_counts, labels_train) = get_tokens_and_counts_from_corpus(
+            train_dir,
+            train_labels_file,
+            args.is_present("stopwords"),
+            true,
+        );
 
-    // println!("{:?}", "Loading training document matrix...");
-    // let tfidf_matrix_train = read_matrix_from_compressed_file("models/matrix_train.pickle.zip");
-    // let labels_train = read_vector_from_compressed_file("models/labels_train.pickle.zip");
+        println!("{}", "Creating training document matrix...");
+        let tfidf_matrix_train = get_tfdif_vectors(train_files_and_counts);
 
-    // println!("{:?}", "Loading test document matrix...");
-    // let tfidf_matrix_test = read_matrix_from_compressed_file("models/matrix_test.pickle.zip");
-    // let labels_test = read_vector_from_compressed_file("models/labels_test.pickle.zip");
+        println!("{}", "Extracting word counts for test data...");
+        let (test_files_and_counts, labels_test) = get_tokens_and_counts_from_corpus(
+            test_dir,
+            test_labels_file,
+            args.is_present("stopwords"),
+            false,
+        );
 
-    // let pred =
-    //     save_pred_labels_to_vec(get_naive_bayes_predictions(tfidf_matrix_train, tfidf_matrix_test, &labels_train));
+        println!("{}", "Creating test document matrix...");
+        let tfidf_matrix_test = get_tfdif_vectors(test_files_and_counts);
 
-    // let (precision, recall, f1) = macro_averaged_evaluation(labels_test, pred);
 
-    // println!("{}{:?}", "Precision: ", precision);
-    // println!("{}{:?}", "Recall: ", precision);
-    // println!("{}{:?}", "F1 score: ", precision);
+        println!("{}", "Training Naive Bayes model...");
+        let pred = save_pred_labels_to_vec(get_naive_bayes_predictions(
+            tfidf_matrix_train,
+            tfidf_matrix_test,
+            &labels_train,
+        ));
+
+        let (precision, recall, f1) = macro_averaged_evaluation(labels_test, pred);
+
+        println!("{}{:?}", "Precision: ", precision);
+        println!("{}{:?}", "Recall: ", recall);
+        println!("{}{:?}", "F1 score: ", f1);
+    }
 
     let end = PreciseTime::now();
     println!("This program took {} seconds to run", start.to(end));
