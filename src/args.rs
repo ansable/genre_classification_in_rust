@@ -1,3 +1,12 @@
+// Course:      Efficient Linear Algebra and Machine Learning
+// Assignment:  Final Project
+// Authors:     Anna Soboleva, Marko Lozajic
+//
+// Honor Code:  We pledge that this program represents our own work.
+// Note:        Makes heavy use of code provided by the course lecturer, Daniël de Kok, in one of previous assignments.
+
+/// Module for parsing command line arguments.
+
 use clap::{App, AppSettings, Arg, ArgMatches};
 
 static DEFAULT_CLAP_SETTINGS: &[AppSettings] = &[

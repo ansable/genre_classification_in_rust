@@ -1,3 +1,11 @@
+// Course:      Efficient Linear Algebra and Machine Learning
+// Assignment:  Final Project
+// Authors:     Anna Soboleva, Marko Lozajic
+//
+// Honor Code:  We pledge that this program represents our own work.
+
+/// Module containing a simple Naive Bayes classifier (as found in the rusty-machine crate) and associated helper methods.
+
 use std;
 
 use rusty_machine::learning::SupModel;

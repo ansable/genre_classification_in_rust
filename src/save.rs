@@ -1,4 +1,13 @@
-// Module for saving/loading models (serialising/deserialising)
+// Course:      Efficient Linear Algebra and Machine Learning
+// Assignment:  Final Project
+// Authors:     Anna Soboleva, Marko Lozajic
+//
+// Honor Code:  We pledge that this program represents our own work.
+
+/// Module for saving/loading models (serializing/deserializing).
+/// The saving functions are currently unused in the project, but they were used to store the term-document vectors in order to
+/// facilitate evaluation, and were kept for the sake of completeness / future reference.
+
 use std;
 use std::fs;
 use std::fs::File;

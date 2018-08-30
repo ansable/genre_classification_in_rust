@@ -1,3 +1,11 @@
+// Course:      Efficient Linear Algebra and Machine Learning
+// Assignment:  Final Project
+// Authors:     Anna Soboleva, Marko Lozajic
+//
+// Honor Code:  We pledge that this program represents our own work.
+
+/// Module for constructing document vector representations (term-document matrices)
+
 use std;
 use std::fs::File;
 use std::io::{BufRead, BufReader};

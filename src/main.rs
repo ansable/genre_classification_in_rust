@@ -1,3 +1,8 @@
+// Course:      Efficient Linear Algebra and Machine Learning
+// Assignment:  Final Project
+// Authors:     Anna Soboleva, Marko Lozajic
+//
+// Honor Code:  We pledge that this program represents our own work.
 extern crate clap;
 extern crate la;
 #[macro_use]
@@ -35,7 +40,7 @@ fn main() {
     let args = parse_args();
 
     if args.is_present("autopilot") {
-        // has to be called as "cargo run -- -a" (so as not to confuse with cargo arguments)
+        // autopilot has to be called as "cargo run -- -a" (so as not to confuse with cargo arguments)
         println!("{}", "Loading training document matrix...");
         let tfidf_matrix_train = read_matrix_from_compressed_file("models/matrix_train.pickle.zip");
         let labels_train = read_vector_from_compressed_file("models/labels_train.pickle.zip");

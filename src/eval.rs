@@ -1,3 +1,11 @@
+// Course:      Efficient Linear Algebra and Machine Learning
+// Assignment:  Final Project
+// Authors:     Anna Soboleva, Marko Lozajic
+//
+// Honor Code:  We pledge that this program represents our own work.
+
+/// Module containing classifier evaluation metrics, namely precision, recall and F1-score.
+
 use std;
 use std::collections::HashSet;
 use std::iter::FromIterator;

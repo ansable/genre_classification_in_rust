@@ -1,3 +1,11 @@
+// Course:      Efficient Linear Algebra and Machine Learning
+// Assignment:  Final Project
+// Authors:     Anna Soboleva, Marko Lozajic
+//
+// Honor Code:  We pledge that this program represents our own work.
+
+/// Module containing functions for cleaning input and passing raw word counts downstream.
+
 use std;
 use std::io::Read;
 use std::sync::Mutex;
