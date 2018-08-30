@@ -1,6 +1,6 @@
 // Course:      Efficient Linear Algebra and Machine Learning
 // Assignment:  Final Project
-// Authors:     Anna Soboleva, Marko Lozajic
+// Authors:     Anna Soboleva, Marko Ložajić
 //
 // Honor Code:  We pledge that this program represents our own work.
 // Note:        Makes heavy use of code provided by the course lecturer, Daniël de Kok, in one of previous assignments.
