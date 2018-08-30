@@ -1,15 +1,17 @@
 use std;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::time::SystemTime;
+
+use la::Matrix;
+use la::SVD;
 
 use zip::ZipArchive;
 
 use preprocessing::VOCAB;
 use preprocessing::preprocess_file;
 
-fn read_filenames_and_labels(
-    labels_file: &str,
-) -> Vec<(std::string::String, std::string::String)> {
+fn read_filenames_and_labels(labels_file: &str) -> Vec<(std::string::String, std::string::String)> {
     let labels_file = File::open(labels_file).expect("File not found");
     let buf = BufReader::new(labels_file);
 
@@ -74,7 +76,15 @@ pub fn get_word_counts_from_corpus(
             continue;
         }
 
-        println!("{}{}{}{}{}{:?}", "Processing document [", i, " / ", number_of_files-1, "] : ", filename_short);
+        println!(
+            "{}{}{}{}{}{:?}",
+            "Processing document [",
+            i,
+            " / ",
+            number_of_files - 1,
+            "] : ",
+            filename_short
+        );
 
         let word_count = preprocess_file(file, filter_stopwords, training_mode);
 
@@ -123,4 +133,51 @@ pub fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<V
         tfidf_vectors.push(tfidf_vector);
     }
     tfidf_vectors
+}
+
+pub fn matrix_to_vec(matrix: Vec<Vec<f64>>) -> (usize, usize, Vec<f64>) {
+    let mut result_vec = vec![];
+    let rows = matrix.len();
+    let cols = matrix[0].len();
+
+    for vec in matrix {
+        for item in vec {
+            result_vec.push(item);
+        }
+    }
+    (rows, cols, result_vec)
+}
+
+// this does work but sadly the problem is in "svd" part (so not the one that we written) and the program is way too slow
+fn perform_la_svd(matrix: Vec<Vec<f64>>) -> SVD<f64> {
+    println!("{}", "Performing singular value decomposition...");
+    let (n_rows, n_cols, data) = matrix_to_vec(matrix);
+    let la_matrix = Matrix::new(n_rows, n_cols, data);
+    let start_time = SystemTime::now();
+    let svd = SVD::new(&la_matrix);
+    let duration = SystemTime::now()
+        .duration_since(start_time)
+        .expect("Time measurement failed");
+    println!("{} seconds for performing SVD", duration.as_secs());
+    svd
+}
+
+fn la_svd_to_matrix(svd: SVD<f64>, n_elements: usize) -> Matrix<f64> {
+    println!("{}", "Transforming SVD result...");
+    let start_time = SystemTime::now();
+    let s = svd.get_s();
+    let s = &s.sub_matrix(0..s.rows(), 0..n_elements);
+    let u = svd.get_u();
+    let result = u * s;
+    let duration = SystemTime::now()
+        .duration_since(start_time)
+        .expect("Time measurement failed");
+    println!("{} seconds for transforming SVD result", duration.as_secs());
+    result.clone()
+}
+
+// la::Matrix to Vec<f64>
+fn from_la_to_vec(mut lamatrix: Matrix<f64>) -> (usize, usize, Vec<f64>) {
+    let tmp = lamatrix.mt();
+    return (tmp.cols(), tmp.rows(), tmp.get_mut_data().to_vec());
 }

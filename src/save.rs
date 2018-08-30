@@ -8,7 +8,6 @@ use serde_pickle;
 
 use zip::ZipArchive;
 
-
 pub fn save_matrix_to_file(matrix: Vec<Vec<f64>>, file: &str) -> () {
     let matrix_pickled = serde_pickle::to_vec(&matrix, true).unwrap();
     fs::write(file, matrix_pickled).expect("Unable to write to file");
