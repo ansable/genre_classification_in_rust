@@ -67,37 +67,38 @@ fn matrix_to_vec(matrix: Vec<Vec<f64>>) -> (usize, usize, Vec<f64>) {
     (rows, cols, result_vec)
 }
 
-//SVD (using la crate)
-fn perform_svd(matrix: Vec<Vec<f64>>) -> (SVD<f64>, Matrix1<f64>) {
-    let (n_rows, n_cols, data) = matrix_to_vec(matrix);
-    let mut la_matrix = Matrix1::new(n_rows, n_cols, data);
+
+//this does work but sadly the problem is in "svd" part (so not the one that we written) and the program is way too slow
+fn perform_la_svd(matrix: Vec<Vec<f64>>) -> SVD<f64>{
+    println!("{}", "Performing svd...");
+    let (n_rows,n_cols,data) = matrix_to_vec(matrix);
+    let mut la_matrix = Matrix1::new(n_rows,n_cols,data);
+    let start = PreciseTime::now();
     let svd = SVD::new(&la_matrix);
-    return (svd, la_matrix);
+    let end = PreciseTime::now();
+    println!("{} seconds for svd performing.", start.to(end));
+    svd
 }
 
-//fixed
-fn svd_to_matrix(double: (SVD<f64>, Matrix1<f64>)) -> Matrix1<f64> {
-    let (svd, matrix) = double;
-
-    let s = svd.get_s();
-
-    let mut diagonal = vec![];
-    for i in 0..s.rows() {
-        for x in 0..s.cols() {
-            let item = s.get(i, x);
-            if item != 0.0 {
-                diagonal.push(item);
-            }
-        }
-    }
-    let s = &Matrix1::diag(diagonal);
-    let mut zeros = Matrix1::zero(s.rows(), s.cols());
-    let zeros = zeros.mt();
+ fn la_svd_to_matrix(svd: SVD<f64>,n_elements: usize) -> Matrix1<f64> {
+    println!("{}", "Transforming svd...");
+    let start = PreciseTime::now();
+    let mut s = svd.get_s();
+    let s = &s.sub_matrix(0..s.rows(),0..n_elements);
     let mut u = svd.get_u();
-
-    let result = s.mmul(u, zeros);
+    let result = u * s;
+    println!("{:?}",result);
+    let end = PreciseTime::now();
+    println!("{} seconds for svd transforming.", start.to(end));
     result.clone()
 }
+
+//la::Matrix to Vec<f64>>
+fn from_la_to_vec(mut lamatrix: Matrix1<f64>) -> (usize,usize,Vec<f64>){
+    let tmp = lamatrix.mt();
+    return (tmp.cols(),tmp.rows(),tmp.get_mut_data().to_vec());
+}
+
 // this one doesn't seem to be working at all, but we can give it another chance on a larger data set
 fn get_naive_bayes_predictions(
     train_matrix: Vec<Vec<f64>>,
