@@ -32,8 +32,8 @@ fn read_filenames_and_labels(labels_file: &str) -> Vec<(std::string::String, std
     filenames_and_labels
 }
 
-// Function to get words from the whole training corpus
-pub fn get_word_counts_from_corpus(
+// Function to get word counts from the whole training corpus
+pub fn get_word_counts_for_corpus(
     corpus_path: &str,
     labels_file: &str,
     filter_stopwords: bool,

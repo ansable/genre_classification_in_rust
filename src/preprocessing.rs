@@ -49,8 +49,8 @@ fn read_html_file(
         }
     }
     match training_mode {
-        true => Ok(tokenize_and_count_train(&text, filter_stopwords)),
-        false => Ok(tokenize_and_count_test(&text, filter_stopwords)),
+        true => Ok(get_word_counts_for_train_file(&text, filter_stopwords)),
+        false => Ok(get_word_counts_for_test_file(&text, filter_stopwords)),
     }
 }
 
@@ -65,20 +65,20 @@ fn read_txt_file(
         .expect("Error encountered while processing file");
 
     match training_mode {
-        true => Ok(tokenize_and_count_train(&contents, filter_stopwords)),
-        false => Ok(tokenize_and_count_test(&contents, filter_stopwords)),
+        true => Ok(get_word_counts_for_train_file(&contents, filter_stopwords)),
+        false => Ok(get_word_counts_for_test_file(&contents, filter_stopwords)),
     }
 }
 
 // function to tokenize text, extract/count word tokens and build vocabulary
-fn tokenize_and_count_train<'a>(
+fn get_word_counts_for_train_file<'a>(
     text: &'a str,
     filter_stopwords: bool,
 ) -> Vec<(std::string::String, usize)> {
     let text = &str::replace(text, "'", " "); // scanlex crashes and burns upon encountering apostrophes
 
     let mut scanner = scanlex::Scanner::new(&text);
-    let mut tokens_and_counts: Vec<(std::string::String, usize)> = vec![];
+    let mut words_and_counts: Vec<(std::string::String, usize)> = vec![];
     let mut vocab = VOCAB.lock().unwrap();
 
     if filter_stopwords {
@@ -102,20 +102,12 @@ fn tokenize_and_count_train<'a>(
                     vocab.push(current_word.to_string());
                 }
 
-                let mut token_in_tokens = false;
-                let mut position_counter = 0;
-
-                for &(ref token, _count) in tokens_and_counts.iter() {
-                    if token == &current_word.to_string() {
-                        token_in_tokens = true;
-                        break;
-                    }
-                    position_counter += 1;
-                }
-                if token_in_tokens {
-                    tokens_and_counts[position_counter].1 += 1;
-                } else {
-                    tokens_and_counts.push((current_word.to_string(), 1));
+                match words_and_counts
+                    .iter()
+                    .position(|(x, _y)| x == &current_word.to_string())
+                {
+                    Some(p) => words_and_counts[p].1 += 1,
+                    None => words_and_counts.push((current_word.to_string(), 1)),
                 }
             } else if current_token.finished() {
                 break;
@@ -132,20 +124,12 @@ fn tokenize_and_count_train<'a>(
                     vocab.push(current_word.to_string());
                 }
 
-                let mut token_in_tokens = false;
-                let mut position_counter = 0;
-
-                for &(ref token, _count) in tokens_and_counts.iter() {
-                    if token == &current_word.to_string() {
-                        token_in_tokens = true;
-                        break;
-                    }
-                    position_counter += 1;
-                }
-                if token_in_tokens {
-                    tokens_and_counts[position_counter].1 += 1;
-                } else {
-                    tokens_and_counts.push((current_word.to_string(), 1));
+                match words_and_counts
+                    .iter()
+                    .position(|(x, _y)| x == &current_word.to_string())
+                {
+                    Some(p) => words_and_counts[p].1 += 1,
+                    None => words_and_counts.push((current_word.to_string(), 1)),
                 }
             } else if current_token.finished() {
                 break;
@@ -154,19 +138,19 @@ fn tokenize_and_count_train<'a>(
     }
     // sort vectors so that we can look for words in O(log n) time using binary search - important for calculating TF-IDF scores
     vocab.sort_unstable();
-    tokens_and_counts.sort_unstable();
-    tokens_and_counts
+    words_and_counts.sort_unstable();
+    words_and_counts
 }
 
 // function to tokenize text, extract/count word tokens and build vocabulary
-fn tokenize_and_count_test<'a>(
+fn get_word_counts_for_test_file<'a>(
     text: &'a str,
     filter_stopwords: bool,
 ) -> Vec<(std::string::String, usize)> {
     let text = &str::replace(text, "'", " "); // scanlex crashes and burns upon encountering apostrophes
 
     let mut scanner = scanlex::Scanner::new(&text);
-    let mut tokens_and_counts: Vec<(std::string::String, usize)> = vec![];
+    let mut words_and_counts: Vec<(std::string::String, usize)> = vec![];
     let mut vocab = VOCAB.lock().unwrap();
 
     if filter_stopwords {
@@ -190,20 +174,12 @@ fn tokenize_and_count_test<'a>(
                     continue;
                 }
 
-                let mut token_in_tokens = false;
-                let mut position_counter = 0;
-
-                for &(ref token, _count) in tokens_and_counts.iter() {
-                    if token == &current_word.to_string() {
-                        token_in_tokens = true;
-                        break;
-                    }
-                    position_counter += 1;
-                }
-                if token_in_tokens {
-                    tokens_and_counts[position_counter].1 += 1;
-                } else {
-                    tokens_and_counts.push((current_word.to_string(), 1));
+                match words_and_counts
+                    .iter()
+                    .position(|(x, _y)| x == &current_word.to_string())
+                {
+                    Some(p) => words_and_counts[p].1 += 1,
+                    None => words_and_counts.push((current_word.to_string(), 1)),
                 }
             } else if current_token.finished() {
                 break;
@@ -220,20 +196,12 @@ fn tokenize_and_count_test<'a>(
                     continue;
                 }
 
-                let mut token_in_tokens = false;
-                let mut position_counter = 0;
-
-                for &(ref token, _count) in tokens_and_counts.iter() {
-                    if token == &current_word.to_string() {
-                        token_in_tokens = true;
-                        break;
-                    }
-                    position_counter += 1;
-                }
-                if token_in_tokens {
-                    tokens_and_counts[position_counter].1 += 1;
-                } else {
-                    tokens_and_counts.push((current_word.to_string(), 1));
+                match words_and_counts
+                    .iter()
+                    .position(|(x, _y)| x == &current_word.to_string())
+                {
+                    Some(p) => words_and_counts[p].1 += 1,
+                    None => words_and_counts.push((current_word.to_string(), 1)),
                 }
             } else if current_token.finished() {
                 break;
@@ -242,8 +210,8 @@ fn tokenize_and_count_test<'a>(
     }
     // sort vectors so that we can look for words in O(log n) time using binary search - important for calculating TF-IDF scores
     vocab.sort_unstable();
-    tokens_and_counts.sort_unstable();
-    tokens_and_counts
+    words_and_counts.sort_unstable();
+    words_and_counts
 }
 
 // main preprocessing function, where text is identified and True/False (stopwords) is in parameters

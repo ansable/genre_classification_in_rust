@@ -22,7 +22,7 @@ mod eval;
 use eval::macro_averaged_evaluation;
 
 mod model;
-use model::{get_tfdif_vectors, get_word_counts_from_corpus};
+use model::{get_tfdif_vectors, get_word_counts_for_corpus};
 
 mod preprocessing;
 
@@ -60,7 +60,7 @@ fn main() {
         let test_labels_file = args.value_of("TEST_LABELS").unwrap_or("labels_test.txt");
 
         println!("{}", "Extracting word counts for training data...");
-        let (train_files_and_counts, labels_train) = get_word_counts_from_corpus(
+        let (train_files_and_counts, labels_train) = get_word_counts_for_corpus(
             train_dir,
             train_labels_file,
             args.is_present("stopwords"),
@@ -71,7 +71,7 @@ fn main() {
         let tfidf_matrix_train = get_tfdif_vectors(train_files_and_counts);
 
         println!("{}", "Extracting word counts for test data...");
-        let (test_files_and_counts, labels_test) = get_word_counts_from_corpus(
+        let (test_files_and_counts, labels_test) = get_word_counts_for_corpus(
             test_dir,
             test_labels_file,
             args.is_present("stopwords"),
