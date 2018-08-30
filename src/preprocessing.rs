@@ -12,7 +12,6 @@ use stopwords::{Language, Spark, Stopwords};
 
 use zip;
 
-
 lazy_static! {
     pub static ref VOCAB: Mutex<Vec<std::string::String>> = Mutex::new(vec![]);
 }
@@ -49,8 +48,10 @@ fn read_html_file(
             }
         }
     }
-
-    return Ok(tokenize_and_count(&text, filter_stopwords, training_mode));
+    match training_mode {
+        true => Ok(tokenize_and_count_train(&text, filter_stopwords)),
+        false => Ok(tokenize_and_count_test(&text, filter_stopwords)),
+    }
 }
 
 // Takes text file as argument, returns its contents as a vector of tokens
@@ -63,70 +64,180 @@ fn read_txt_file(
     file.read_to_string(&mut contents)
         .expect("Error encountered while processing file");
 
-    return Ok(tokenize_and_count(
-        &contents,
-        filter_stopwords,
-        training_mode,
-    ));
+    match training_mode {
+        true => Ok(tokenize_and_count_train(&contents, filter_stopwords)),
+        false => Ok(tokenize_and_count_test(&contents, filter_stopwords)),
+    }
 }
 
-// function to tokenize text, count tokens and build vocabulary
-pub fn tokenize_and_count<'a>(
+// function to tokenize text, extract/count word tokens and build vocabulary
+fn tokenize_and_count_train<'a>(
     text: &'a str,
     filter_stopwords: bool,
-    training_mode: bool,
 ) -> Vec<(std::string::String, usize)> {
-    let text = &str::replace(text, "'", " "); // scanlex crashes and burns upon encountering
+    let text = &str::replace(text, "'", " "); // scanlex crashes and burns upon encountering apostrophes
 
     let mut scanner = scanlex::Scanner::new(&text);
     let mut tokens_and_counts: Vec<(std::string::String, usize)> = vec![];
     let mut vocab = VOCAB.lock().unwrap();
 
-    let stopwords: Vec<_> = Spark::stopwords(Language::English)
-        .unwrap()
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
+    if filter_stopwords {
+        let stopwords: Vec<_> = Spark::stopwords(Language::English)
+            .unwrap()
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
 
-    loop {
-        let current_token = scanner.get();
+        loop {
+            let current_token = scanner.get();
 
-        if current_token.is_iden() {
-            let current_word = &current_token.to_iden().unwrap().to_lowercase();
+            if current_token.is_iden() {
+                let current_word = &current_token.to_iden().unwrap().to_lowercase();
 
-            if filter_stopwords {
                 if stopwords.contains(&current_word.to_string()) {
                     continue;
                 }
-            }
 
-            if training_mode {
                 if !vocab.contains(&current_word) {
                     vocab.push(current_word.to_string());
                 }
-            } else {
+
+                let mut token_in_tokens = false;
+                let mut position_counter = 0;
+
+                for &(ref token, _count) in tokens_and_counts.iter() {
+                    if token == &current_word.to_string() {
+                        token_in_tokens = true;
+                        break;
+                    }
+                    position_counter += 1;
+                }
+                if token_in_tokens {
+                    tokens_and_counts[position_counter].1 += 1;
+                } else {
+                    tokens_and_counts.push((current_word.to_string(), 1));
+                }
+            } else if current_token.finished() {
+                break;
+            }
+        }
+    } else {
+        loop {
+            let current_token = scanner.get();
+
+            if current_token.is_iden() {
+                let current_word = &current_token.to_iden().unwrap().to_lowercase();
+
+                if !vocab.contains(&current_word) {
+                    vocab.push(current_word.to_string());
+                }
+
+                let mut token_in_tokens = false;
+                let mut position_counter = 0;
+
+                for &(ref token, _count) in tokens_and_counts.iter() {
+                    if token == &current_word.to_string() {
+                        token_in_tokens = true;
+                        break;
+                    }
+                    position_counter += 1;
+                }
+                if token_in_tokens {
+                    tokens_and_counts[position_counter].1 += 1;
+                } else {
+                    tokens_and_counts.push((current_word.to_string(), 1));
+                }
+            } else if current_token.finished() {
+                break;
+            }
+        }
+    }
+    // sort vectors so that we can look for words in O(log n) time using binary search - important for calculating TF-IDF scores
+    vocab.sort_unstable();
+    tokens_and_counts.sort_unstable();
+    tokens_and_counts
+}
+
+// function to tokenize text, extract/count word tokens and build vocabulary
+fn tokenize_and_count_test<'a>(
+    text: &'a str,
+    filter_stopwords: bool,
+) -> Vec<(std::string::String, usize)> {
+    let text = &str::replace(text, "'", " "); // scanlex crashes and burns upon encountering apostrophes
+
+    let mut scanner = scanlex::Scanner::new(&text);
+    let mut tokens_and_counts: Vec<(std::string::String, usize)> = vec![];
+    let mut vocab = VOCAB.lock().unwrap();
+
+    if filter_stopwords {
+        let stopwords: Vec<_> = Spark::stopwords(Language::English)
+            .unwrap()
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+
+        loop {
+            let current_token = scanner.get();
+
+            if current_token.is_iden() {
+                let current_word = &current_token.to_iden().unwrap().to_lowercase();
+
+                if stopwords.contains(&current_word.to_string()) {
+                    continue;
+                }
+
                 if !vocab.contains(&current_word) {
                     continue;
                 }
-            }
 
-            let mut token_in_tokens = false;
-            let mut position_counter = 0;
+                let mut token_in_tokens = false;
+                let mut position_counter = 0;
 
-            for &(ref token, _count) in tokens_and_counts.iter() {
-                if token == &current_word.to_string() {
-                    token_in_tokens = true;
-                    break;
+                for &(ref token, _count) in tokens_and_counts.iter() {
+                    if token == &current_word.to_string() {
+                        token_in_tokens = true;
+                        break;
+                    }
+                    position_counter += 1;
                 }
-                position_counter += 1;
+                if token_in_tokens {
+                    tokens_and_counts[position_counter].1 += 1;
+                } else {
+                    tokens_and_counts.push((current_word.to_string(), 1));
+                }
+            } else if current_token.finished() {
+                break;
             }
-            if token_in_tokens {
-                tokens_and_counts[position_counter].1 += 1;
-            } else {
-                tokens_and_counts.push((current_word.to_string(), 1));
+        }
+    } else {
+        loop {
+            let current_token = scanner.get();
+
+            if current_token.is_iden() {
+                let current_word = &current_token.to_iden().unwrap().to_lowercase();
+
+                if !vocab.contains(&current_word) {
+                    continue;
+                }
+
+                let mut token_in_tokens = false;
+                let mut position_counter = 0;
+
+                for &(ref token, _count) in tokens_and_counts.iter() {
+                    if token == &current_word.to_string() {
+                        token_in_tokens = true;
+                        break;
+                    }
+                    position_counter += 1;
+                }
+                if token_in_tokens {
+                    tokens_and_counts[position_counter].1 += 1;
+                } else {
+                    tokens_and_counts.push((current_word.to_string(), 1));
+                }
+            } else if current_token.finished() {
+                break;
             }
-        } else if current_token.finished() {
-            break;
         }
     }
     // sort vectors so that we can look for words in O(log n) time using binary search - important for calculating TF-IDF scores

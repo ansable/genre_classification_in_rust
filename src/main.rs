@@ -29,7 +29,6 @@ mod preprocessing;
 mod save;
 use save::{read_matrix_from_compressed_file, read_vector_from_compressed_file};
 
-
 fn main() {
     let start_time = SystemTime::now();
 
@@ -45,11 +44,8 @@ fn main() {
         let tfidf_matrix_test = read_matrix_from_compressed_file("models/matrix_test.pickle.zip");
         let labels_test = read_vector_from_compressed_file("models/labels_test.pickle.zip");
 
-        let pred = get_naive_bayes_predictions(
-            tfidf_matrix_train,
-            tfidf_matrix_test,
-            &labels_train,
-        );
+        let pred =
+            get_naive_bayes_predictions(tfidf_matrix_train, tfidf_matrix_test, &labels_train);
 
         let (precision, recall, f1) = macro_averaged_evaluation(labels_test, pred);
 
@@ -86,11 +82,8 @@ fn main() {
         let tfidf_matrix_test = get_tfdif_vectors(test_files_and_counts);
 
         println!("{}", "Training Naive Bayes model...");
-        let pred = get_naive_bayes_predictions(
-            tfidf_matrix_train,
-            tfidf_matrix_test,
-            &labels_train,
-        );
+        let pred =
+            get_naive_bayes_predictions(tfidf_matrix_train, tfidf_matrix_test, &labels_train);
 
         let (precision, recall, f1) = macro_averaged_evaluation(labels_test, pred);
 
