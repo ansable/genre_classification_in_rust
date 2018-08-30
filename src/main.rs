@@ -3,6 +3,7 @@
 // Authors:     Anna Soboleva, Marko Ložajić
 //
 // Honor Code:  We pledge that this program represents our own work.
+
 extern crate clap;
 extern crate la;
 #[macro_use]
@@ -40,12 +41,11 @@ fn main() {
     let args = parse_args();
 
     if args.is_present("autopilot") {
-        // autopilot has to be called as "cargo run -- -a" (so as not to confuse with cargo arguments)
-        println!("{}", "Loading training document matrix...");
+        println!("{}", "Loading training document matrix and labels...");
         let tfidf_matrix_train = read_matrix_from_compressed_file("models/matrix_train.pickle.zip");
         let labels_train = read_vector_from_compressed_file("models/labels_train.pickle.zip");
 
-        println!("{}", "Loading test document matrix...");
+        println!("{}", "Loading test document matrix and labels...");
         let tfidf_matrix_test = read_matrix_from_compressed_file("models/matrix_test.pickle.zip");
         let labels_test = read_vector_from_compressed_file("models/labels_test.pickle.zip");
 

@@ -5,7 +5,6 @@
 // Honor Code:  We pledge that this program represents our own work.
 
 /// Module containing functions for cleaning input and passing raw word counts downstream.
-
 use std;
 use std::io::Read;
 use std::sync::Mutex;
@@ -21,14 +20,16 @@ use stopwords::{Language, Spark, Stopwords};
 use zip;
 
 lazy_static! {
+    // the global VOCAB variable stores all the unique words encountered in the text
+    // needs to be stored in a Mutex for thread safety
     pub static ref VOCAB: Mutex<Vec<std::string::String>> = Mutex::new(vec![]);
 }
 
-// function to identify type of the file. Returns String with: "html", "txt" or "other"
+// Function to identify type of the file; currently only text and HTML files are supported.
 fn type_of_file(filename: &str) -> &str {
     let split_filename: Vec<&str> = filename.split(".").collect();
 
-    // match against string following last dot in filename (should indicate file type)
+    // match against substring after last dot in filename (should indicate file type)
     match split_filename[split_filename.len() - 1] {
         "txt" => "txt",
         "html" => "html",
@@ -36,8 +37,8 @@ fn type_of_file(filename: &str) -> &str {
     }
 }
 
-// Takes HTML file as parameter, extracts text from p tags and returns its contents as a vector of tokens
-// following crate was consulted for reference:
+// Takes HTML file (extracted from zip archive) as parameter, extracts text from p tags and returns its contents as a vector of tokens
+// The "select" crate was consulted for reference, specifically:
 // https://github.com/utkarshkukreti/select.rs/blob/master/tests/node_tests.rs
 fn read_html_file(
     file: zip::read::ZipFile,
@@ -48,8 +49,11 @@ fn read_html_file(
 
     let mut text = String::from(" ");
 
+    // all HTML files were taken from the same source (archiveofourown.org),
+    // where the relevant content is found in the element with the "chapters" identifier
     for main_div in document.unwrap().find(Attr("id", "chapters")) {
         for p in main_div.find(Name("p")) {
+            // extract all elements with <p> tag
             match &p.children().next() {
                 Some(child) => text = format!("{}", text.to_owned() + &child.text()),
                 None => continue,
@@ -62,7 +66,7 @@ fn read_html_file(
     }
 }
 
-// Takes text file as argument, returns its contents as a vector of tokens
+// Takes text file (extracted from zip archive) as parameter, returns its contents as a vector of tokens
 fn read_txt_file(
     mut file: zip::read::ZipFile,
     filter_stopwords: bool,
@@ -78,7 +82,7 @@ fn read_txt_file(
     }
 }
 
-// function to tokenize text, extract/count word tokens and build vocabulary
+// Function to extract word tokens and counts from training text, building up the vocabulary along the way
 fn get_word_counts_for_train_file<'a>(
     text: &'a str,
     filter_stopwords: bool,
@@ -100,28 +104,32 @@ fn get_word_counts_for_train_file<'a>(
             let current_token = scanner.get();
 
             if current_token.is_iden() {
-                let current_word = &current_token.to_iden().unwrap().to_lowercase();
+                // "iden" represents a word token
+                let current_word = &current_token.to_iden().unwrap().to_lowercase(); // lowercase to normalize text
 
                 if stopwords.contains(&current_word.to_string()) {
                     continue;
                 }
 
                 if !vocab.contains(&current_word) {
-                    vocab.push(current_word.to_string());
+                    vocab.push(current_word.to_string()); // if new word is encountered, add it to the vocabulary
                 }
 
                 match words_and_counts
                     .iter()
-                    .position(|(x, _y)| x == &current_word.to_string())
+                    .position(|(x, _y)| x == &current_word.to_string()) // look for word within previously found words in file
                 {
-                    Some(p) => words_and_counts[p].1 += 1,
-                    None => words_and_counts.push((current_word.to_string(), 1)),
+                    Some(p) => words_and_counts[p].1 += 1, // if previously seen, increment its count by 1
+                    None => words_and_counts.push((current_word.to_string(), 1)), // if new, add it to the vector and set its count to 1
                 }
             } else if current_token.finished() {
+                // if we processed the last token, stop
                 break;
             }
         }
     } else {
+        // the loop is the same as above, except without the stopwords check
+        // the reason for copying the loop was to prevent unnecessary boolean checks (filter_stopwords) upon every iteration
         loop {
             let current_token = scanner.get();
 
@@ -150,7 +158,8 @@ fn get_word_counts_for_train_file<'a>(
     words_and_counts
 }
 
-// function to tokenize text, extract/count word tokens and build vocabulary
+// Function to extract word tokens and counts from training text, building up the vocabulary along the way
+// Essentially same functionality as "get_word_counts_for_train_file", but without adding words to the vocabulary
 fn get_word_counts_for_test_file<'a>(
     text: &'a str,
     filter_stopwords: bool,
@@ -216,13 +225,12 @@ fn get_word_counts_for_test_file<'a>(
             }
         }
     }
-    // sort vectors so that we can look for words in O(log n) time using binary search - important for calculating TF-IDF scores
     vocab.sort_unstable();
     words_and_counts.sort_unstable();
     words_and_counts
 }
 
-// main preprocessing function, where text is identified and True/False (stopwords) is in parameters
+// Main preprocessing function, where text is identified and boolean parameters are passed on to other functions
 pub fn preprocess_file(
     file: zip::read::ZipFile,
     filter_stopwords: bool,

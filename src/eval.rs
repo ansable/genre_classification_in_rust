@@ -4,8 +4,7 @@
 //
 // Honor Code:  We pledge that this program represents our own work.
 
-/// Module containing classifier evaluation metrics, namely precision, recall and F1-score.
-
+/// Module containing classifier evaluation metrics, namely precision, recall and F1 score.
 use std;
 use std::collections::HashSet;
 use std::iter::FromIterator;
@@ -26,6 +25,7 @@ fn precision(
     let mut true_positive_for_label = 0;
 
     if !pred.contains(&label) {
+        // this is to avoid division by zero if some label was never predicted
         return 0.0;
     }
 
@@ -46,10 +46,16 @@ fn recall(
     pred: &Vec<std::string::String>,
     label: std::string::String,
 ) -> f64 {
+    assert_eq!(
+        gold.len(),
+        pred.len(),
+        "Label vectors must have the same length"
+    );
     let mut total_gold_for_label = 0;
     let mut true_positive_for_label = 0;
 
     if !gold.contains(&label) {
+        // this is to prevent division by zero if the label is not actually represented in the test set
         return 0.0;
     }
 
@@ -64,7 +70,7 @@ fn recall(
     true_positive_for_label as f64 / total_gold_for_label as f64
 }
 
-// F1: harmonic average of precision and recall
+// F1 score: harmonic average of precision and recall
 fn f1_score(precision: f64, recall: f64) -> f64 {
     if precision + recall == 0.0 {
         return 0.0;
@@ -73,7 +79,7 @@ fn f1_score(precision: f64, recall: f64) -> f64 {
     2.0 * precision * recall / (precision + recall)
 }
 
-// Return macro-averaged precision, recall and F1 score for given predictions
+// Returns macro-averaged precision, recall and F1 score for given predictions
 pub fn macro_averaged_evaluation(
     gold: Vec<std::string::String>,
     pred: Vec<std::string::String>,
@@ -81,7 +87,7 @@ pub fn macro_averaged_evaluation(
     let mut macro_averaged_precision = 0.0;
     let mut macro_averaged_recall = 0.0;
 
-    // the following line assumes every label appears at least once in the training data
+    // the following line assumes every label appears at least once in the test data
     let labels_set: HashSet<std::string::String> = HashSet::from_iter(gold.iter().cloned());
 
     for label in labels_set.iter() {

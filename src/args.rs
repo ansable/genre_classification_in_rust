@@ -6,7 +6,6 @@
 // Note:        Makes heavy use of code provided by the course lecturer, Daniël de Kok, in one of previous assignments.
 
 /// Module for parsing command line arguments.
-
 use clap::{App, AppSettings, Arg, ArgMatches};
 
 static DEFAULT_CLAP_SETTINGS: &[AppSettings] = &[
@@ -18,7 +17,7 @@ pub fn parse_args() -> ArgMatches<'static> {
     App::new("final-frontier")
         .settings(DEFAULT_CLAP_SETTINGS)
         .arg(
-            Arg::with_name("autopilot")
+            Arg::with_name("autopilot") // autopilot has to be called as "cargo run -- -a" (so as not to confuse with cargo arguments)
                 .short("a")
                 .long("autopilot")
                 .value_name("AUTOPILOT")
