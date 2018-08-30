@@ -1,20 +1,17 @@
-//so far i ordered all imports according to functions, so it would be easier for you
-//to understand what comes from what
-//TODO: order them afterwards according common sense
 use std;
 use std::io::Read;
+use std::sync::Mutex;
 
-use zip;
-
-extern crate scanlex;
-
-use stopwords::{Language, Spark, Stopwords};
+use scanlex;
 
 use select::document::Document;
 use select::predicate::Attr;
 use select::predicate::Name;
 
-use std::sync::Mutex;
+use stopwords::{Language, Spark, Stopwords};
+
+use zip;
+
 
 lazy_static! {
     pub static ref VOCAB: Mutex<Vec<std::string::String>> = Mutex::new(vec![]);
@@ -83,6 +80,7 @@ pub fn tokenize_and_count<'a>(
 
     let mut scanner = scanlex::Scanner::new(&text);
     let mut tokens_and_counts: Vec<(std::string::String, usize)> = vec![];
+    let mut vocab = VOCAB.lock().unwrap();
 
     let stopwords: Vec<_> = Spark::stopwords(Language::English)
         .unwrap()
@@ -103,11 +101,11 @@ pub fn tokenize_and_count<'a>(
             }
 
             if training_mode {
-                if !VOCAB.lock().unwrap().contains(&current_word) {
-                    VOCAB.lock().unwrap().push(current_word.to_string());
+                if !vocab.contains(&current_word) {
+                    vocab.push(current_word.to_string());
                 }
             } else {
-                if !VOCAB.lock().unwrap().contains(&current_word) {
+                if !vocab.contains(&current_word) {
                     continue;
                 }
             }
@@ -131,6 +129,9 @@ pub fn tokenize_and_count<'a>(
             break;
         }
     }
+    // sort vectors so that we can look for words in O(log n) time using binary search - important for calculating TF-IDF scores
+    vocab.sort_unstable();
+    tokens_and_counts.sort_unstable();
     tokens_and_counts
 }
 
