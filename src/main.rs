@@ -8,17 +8,13 @@ extern crate select;
 extern crate serde;
 extern crate serde_pickle;
 extern crate stopwords;
-extern crate time;
 extern crate zip;
 
-use la::Matrix as Matrix1; //TODO: rename it to some laMatrix
-use la::SVD;
+use std::time::SystemTime;
 
-use rusty_machine::learning::naive_bayes::{Multinomial, NaiveBayes};
 use rusty_machine::learning::SupModel;
+use rusty_machine::learning::naive_bayes::{Multinomial, NaiveBayes};
 use rusty_machine::linalg::Matrix;
-
-use time::PreciseTime;
 
 mod args;
 use args::parse_args;
@@ -27,13 +23,12 @@ mod eval;
 use eval::macro_averaged_evaluation;
 
 mod model;
-use model::{get_word_counts_from_corpus, get_tfdif_vectors};
+use model::{get_tfdif_vectors, get_word_counts_from_corpus, matrix_to_vec};
 
 mod preprocessing;
 
 mod save;
-use save::{read_vector_from_compressed_file, read_matrix_from_compressed_file};
-
+use save::{read_matrix_from_compressed_file, read_vector_from_compressed_file};
 
 fn genre_labels_to_numbers(labels: Vec<std::string::String>) -> Vec<Vec<f64>> {
     let mut labels_as_numbers: Vec<Vec<f64>> = vec![];
@@ -54,52 +49,6 @@ fn genre_labels_to_numbers(labels: Vec<std::string::String>) -> Vec<Vec<f64>> {
     labels_as_numbers
 }
 
-fn matrix_to_vec(matrix: Vec<Vec<f64>>) -> (usize, usize, Vec<f64>) {
-    let mut result_vec = vec![];
-    let rows = matrix.len();
-    let cols = matrix[0].len();
-
-    for vec in matrix {
-        for item in vec {
-            result_vec.push(item);
-        }
-    }
-    (rows, cols, result_vec)
-}
-
-
-//this does work but sadly the problem is in "svd" part (so not the one that we written) and the program is way too slow
-fn perform_la_svd(matrix: Vec<Vec<f64>>) -> SVD<f64>{
-    println!("{}", "Performing svd...");
-    let (n_rows,n_cols,data) = matrix_to_vec(matrix);
-    let mut la_matrix = Matrix1::new(n_rows,n_cols,data);
-    let start = PreciseTime::now();
-    let svd = SVD::new(&la_matrix);
-    let end = PreciseTime::now();
-    println!("{} seconds for svd performing.", start.to(end));
-    svd
-}
-
- fn la_svd_to_matrix(svd: SVD<f64>,n_elements: usize) -> Matrix1<f64> {
-    println!("{}", "Transforming svd...");
-    let start = PreciseTime::now();
-    let mut s = svd.get_s();
-    let s = &s.sub_matrix(0..s.rows(),0..n_elements);
-    let mut u = svd.get_u();
-    let result = u * s;
-    println!("{:?}",result);
-    let end = PreciseTime::now();
-    println!("{} seconds for svd transforming.", start.to(end));
-    result.clone()
-}
-
-//la::Matrix to Vec<f64>>
-fn from_la_to_vec(mut lamatrix: Matrix1<f64>) -> (usize,usize,Vec<f64>){
-    let tmp = lamatrix.mt();
-    return (tmp.cols(),tmp.rows(),tmp.get_mut_data().to_vec());
-}
-
-// this one doesn't seem to be working at all, but we can give it another chance on a larger data set
 fn get_naive_bayes_predictions(
     train_matrix: Vec<Vec<f64>>,
     test_matrix: Vec<Vec<f64>>,
@@ -139,11 +88,12 @@ fn save_pred_labels_to_vec(matrix: Matrix<f64>) -> Vec<std::string::String> {
 }
 
 fn main() {
-    let start = PreciseTime::now();
+    let start_time = SystemTime::now();
 
     let args = parse_args();
 
-    if args.is_present("autopilot") { // has to be called as "cargo run -- -a" (so as not to confuse with cargo arguments)
+    if args.is_present("autopilot") {
+        // has to be called as "cargo run -- -a" (so as not to confuse with cargo arguments)
         println!("{}", "Loading training document matrix...");
         let tfidf_matrix_train = read_matrix_from_compressed_file("models/matrix_train.pickle.zip");
         let labels_train = read_vector_from_compressed_file("models/labels_train.pickle.zip");
@@ -192,7 +142,6 @@ fn main() {
         println!("{}", "Creating test term-document matrix...");
         let tfidf_matrix_test = get_tfdif_vectors(test_files_and_counts);
 
-
         println!("{}", "Training Naive Bayes model...");
         let pred = save_pred_labels_to_vec(get_naive_bayes_predictions(
             tfidf_matrix_train,
@@ -207,6 +156,8 @@ fn main() {
         println!("{}{:?}", "F1 score: ", f1);
     }
 
-    let end = PreciseTime::now();
-    println!("This program took {} seconds to run", start.to(end));
+    let duration = SystemTime::now()
+        .duration_since(start_time)
+        .expect("Time measurement failed");
+    println!("This program took {:?} seconds to run", duration.as_secs());
 }
