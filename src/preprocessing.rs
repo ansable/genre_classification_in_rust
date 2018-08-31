@@ -269,5 +269,4 @@ mod tests {
             vec2
         );
     }
-
 }
