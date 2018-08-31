@@ -52,7 +52,7 @@ fn main() {
         let pred =
             get_naive_bayes_predictions(tfidf_matrix_train, tfidf_matrix_test, &labels_train);
 
-        let (precision, recall, f1) = macro_averaged_evaluation(labels_test, pred);
+        let (precision, recall, f1) = macro_averaged_evaluation(&labels_test, &pred);
 
         println!("{}{:?}", "Precision: ", precision);
         println!("{}{:?}", "Recall: ", recall);
@@ -90,7 +90,7 @@ fn main() {
         let pred =
             get_naive_bayes_predictions(tfidf_matrix_train, tfidf_matrix_test, &labels_train);
 
-        let (precision, recall, f1) = macro_averaged_evaluation(labels_test, pred);
+        let (precision, recall, f1) = macro_averaged_evaluation(&labels_test, &pred);
 
         println!("{}{:?}", "Precision: ", precision);
         println!("{}{:?}", "Recall: ", recall);
