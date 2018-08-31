@@ -7,10 +7,6 @@
 /// Module containing a simple Naïve Bayes classifier (as found in the rusty-machine crate) and associated helper methods.
 use std;
 
-use na::base::MatrixMN;
-use na::base::dimension::Dim;
-use na::linalg::SVD;
-
 use rusty_machine::learning::SupModel;
 use rusty_machine::learning::naive_bayes::{Multinomial, NaiveBayes};
 use rusty_machine::linalg::Matrix;
@@ -70,19 +66,6 @@ pub fn matrix_to_vec(matrix: Vec<Vec<f64>>) -> (usize, usize, Vec<f64>) {
     (rows, cols, result_vec)
 }
 
-//Implementation of SVD in nalgebra
-fn svd(input: Vec<Vec<f64>>, n_elements: usize) -> (usize, usize, Vec<f64>) {
-    let(nrows, ncols, data) = matrix_to_vec(input);
-    let matrix = na::DMatrix::<f64>::from_iterator(nrows, ncols, data);
-    let svd_matrices = matrix.svd(true, true);
-    let u = svd_matrices.u;
-    let sigma = na::DMatrix::from_diagonal(&svd_matrices.singular_values);
-    println!("{:?}", u);
-    let sigma_resized = sigma.columns(0, n_elements);
-    let transformed = u.unwrap() * &sigma_resized ;
-    return (transformed.shape().0, transformed.shape().1, transformed.as_slice().to_vec())
-}
-
 // Function that computes the model predictions, using rusty-machine's Naive Bayes classifier and assuming a Multinomial distribution.
 pub fn get_naive_bayes_predictions(
     train_matrix: Vec<Vec<f64>>,
@@ -103,4 +86,29 @@ pub fn get_naive_bayes_predictions(
     model.train(&train, &labels).unwrap();
 
     genre_labels_from_onehot(model.predict(&test).unwrap())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::matrix_to_vec;
+
+    #[test]
+    fn matrix_to_vec_test() {
+        let a = vec![1, 2];
+        let b = vec![3, 4];
+        let test = vec![a, b];
+        assert_eq!(matrix_to_vec(test), vec![1, 2, 3, 4]);
+    }
+    #[test]
+    fn perform_la_svd_test() {
+        let A = vec![vec![1, 2], vec![3, 4], [5, 6]];
+        let s = vec![9.52551809, 0.51430058];
+        let v = vec![
+            vec![-0.61962948, -0.78489445],
+            vec![-0.78489445, 0.61962948],
+        ];
+        let svd = perform_la_svd(A);
+        assert_eq!(svd.get_s(), s);
+        assert_eq!(svd.get_v(), v);
+    }
 }
