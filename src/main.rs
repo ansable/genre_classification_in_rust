@@ -6,6 +6,7 @@
 
 extern crate clap;
 extern crate la;
+extern crate nalgebra as na;
 #[macro_use]
 extern crate lazy_static;
 extern crate rusty_machine;
