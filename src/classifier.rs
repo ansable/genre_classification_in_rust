@@ -7,6 +7,10 @@
 /// Module containing a simple Naïve Bayes classifier (as found in the rusty-machine crate) and associated helper methods.
 use std;
 
+use na::base::MatrixMN;
+use na::base::dimension::Dim;
+use na::linalg::SVD;
+
 use rusty_machine::learning::SupModel;
 use rusty_machine::learning::naive_bayes::{Multinomial, NaiveBayes};
 use rusty_machine::linalg::Matrix;
@@ -64,6 +68,19 @@ pub fn matrix_to_vec(matrix: Vec<Vec<f64>>) -> (usize, usize, Vec<f64>) {
         }
     }
     (rows, cols, result_vec)
+}
+
+//Implementation of SVD in nalgebra
+fn svd(input: Vec<Vec<f64>>, n_elements: usize) -> (usize, usize, Vec<f64>) {
+    let(nrows, ncols, data) = matrix_to_vec(input);
+    let matrix = na::DMatrix::<f64>::from_iterator(nrows, ncols, data);
+    let svd_matrices = matrix.svd(true, true);
+    let u = svd_matrices.u;
+    let sigma = na::DMatrix::from_diagonal(&svd_matrices.singular_values);
+    println!("{:?}", u);
+    let sigma_resized = sigma.columns(0, n_elements);
+    let transformed = u.unwrap() * &sigma_resized ;
+    return (transformed.shape().0, transformed.shape().1, transformed.as_slice().to_vec())
 }
 
 // Function that computes the model predictions, using rusty-machine's Naive Bayes classifier and assuming a Multinomial distribution.
