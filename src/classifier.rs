@@ -87,3 +87,28 @@ pub fn get_naive_bayes_predictions(
 
     genre_labels_from_onehot(model.predict(&test).unwrap())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::matrix_to_vec;
+
+    #[test]
+    fn matrix_to_vec_test() {
+        let a = vec![1, 2];
+        let b = vec![3, 4];
+        let test = vec![a, b];
+        assert_eq!(matrix_to_vec(test), vec![1, 2, 3, 4]);
+    }
+    #[test]
+    fn perform_la_svd_test() {
+        let A = vec![vec![1, 2], vec![3, 4], [5, 6]];
+        let s = vec![9.52551809, 0.51430058];
+        let v = vec![
+            vec![-0.61962948, -0.78489445],
+            vec![-0.78489445, 0.61962948],
+        ];
+        let svd = perform_la_svd(A);
+        assert_eq!(svd.get_s(), s);
+        assert_eq!(svd.get_v(), v);
+    }
+}

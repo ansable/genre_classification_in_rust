@@ -182,3 +182,23 @@ fn from_la_to_vec(mut lamatrix: Matrix<f64>) -> (usize, usize, Vec<f64>) {
     let tmp = lamatrix.mt();
     return (tmp.cols(), tmp.rows(), tmp.get_mut_data().to_vec());
 }
+
+//#[cfg(test)]
+//mod tests {
+//    use super::{from_la_to_vec,perform_la_svd,Matrix};
+//
+//    #[test]
+//    fn from_la_to_vec_test(){
+//        let test = la::Matrix::zero(2,2);
+//        assert_eq!(test,(2,2,vec![0,0,0,0]));
+//    }
+//    #[test]
+//    fn perform_la_svd_test(){
+//        let A = vec![vec![1,2],vec![3,4],[5,6]];
+//        let s = vec![9.52551809, 0.51430058];
+//        let v = vec![vec![-0.61962948,-0.78489445],vec![-0.78489445,0.61962948]];
+//        let svd = perform_la_svd(A);
+//        assert_eq!(svd.get_s(),s);
+//        assert_eq!(svd.get_v(),v);
+//    }
+//}

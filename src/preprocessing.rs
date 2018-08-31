@@ -244,3 +244,29 @@ pub fn preprocess_file(
         _ => None,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{get_word_counts_for_train_file, type_of_file};
+
+    #[test]
+    fn type_of_file_test() {
+        assert_eq!(type_of_file("john.txt"), "txt");
+        assert_eq!(type_of_file("mary.html"), "html");
+        assert_eq!(type_of_file("hope is lost"), "unknown");
+    }
+    #[test]
+    fn get_word_counts_for_test_file_test() {
+        let vec1 = vec![
+            (String::from("a"), 2 as usize),
+            (String::from("bird"), 2 as usize),
+            (String::from("man"), 1 as usize),
+        ];
+        let vec2 = vec![(String::from("dog"), 1 as usize)];
+        assert_eq!(get_word_counts_for_train_file("A bird, a man", false), vec1);
+        assert_eq!(
+            get_word_counts_for_train_file("A a a a a a is dog I'm", true),
+            vec2
+        );
+    }
+}
