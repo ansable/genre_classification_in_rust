@@ -190,6 +190,9 @@ mod tests {
     #[test]
     fn from_la_to_vec_test() {
         let test = Matrix::zero(2, 2);
-        assert_eq!(from_la_to_vec(test), (2 as usize, 2 as usize, vec![0.0, 0.0, 0.0, 0.0]));
+        assert_eq!(
+            from_la_to_vec(test),
+            (2 as usize, 2 as usize, vec![0.0, 0.0, 0.0, 0.0])
+        );
     }
 }

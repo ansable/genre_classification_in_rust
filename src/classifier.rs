@@ -90,14 +90,17 @@ pub fn get_naive_bayes_predictions(
 
 #[cfg(test)]
 mod tests {
-    use super::{matrix_to_vec, genre_labels_to_onehot};
+    use super::{genre_labels_to_onehot, matrix_to_vec};
 
     #[test]
-    fn matrix_to_vec_test(){
-        let a = vec![1.0,2.0];
-        let b = vec![3.0,4.0];
-        let test = vec![a,b];
-        assert_eq!(matrix_to_vec(test),(2 as usize,2 as usize,vec![1.0,2.0,3.0,4.0]));
+    fn matrix_to_vec_test() {
+        let a = vec![1.0, 2.0];
+        let b = vec![3.0, 4.0];
+        let test = vec![a, b];
+        assert_eq!(
+            matrix_to_vec(test),
+            (2 as usize, 2 as usize, vec![1.0, 2.0, 3.0, 4.0])
+        );
     }
     #[test]
     fn genre_labels_to_onehot_test() {

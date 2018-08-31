@@ -72,7 +72,10 @@ fn recall(
 
 // F1 score: harmonic average of precision and recall
 fn f1_score(precision: f64, recall: f64) -> f64 {
-    assert!(precision >= 0.0 && recall >= 0.0, "Precision and recall may not be negative");
+    assert!(
+        precision >= 0.0 && recall >= 0.0,
+        "Precision and recall may not be negative"
+    );
     if precision + recall == 0.0 {
         return 0.0;
     }
@@ -109,18 +112,28 @@ pub fn macro_averaged_evaluation(
 
 #[cfg(test)]
 mod tests {
-    use super::{precision, recall, f1_score, macro_averaged_evaluation};
+    use super::{macro_averaged_evaluation, precision, recall, f1_score};
 
     #[test]
-    fn precision_recall_test1(){
-        let gold = vec![String::from("detective"), String::from("detective"), String::from("detective"), String::from("detective")];
-        let pred = vec![String::from("detective"), String::from("erotica"), String::from("scifi"), String::from("horror")];
+    fn precision_recall_test1() {
+        let gold = vec![
+            String::from("detective"),
+            String::from("detective"),
+            String::from("detective"),
+            String::from("detective"),
+        ];
+        let pred = vec![
+            String::from("detective"),
+            String::from("erotica"),
+            String::from("scifi"),
+            String::from("horror"),
+        ];
         assert_eq!(precision(&gold, &pred, String::from("detective")), 1.0);
         assert_eq!(recall(&gold, &pred, String::from("detective")), 0.25);
     }
 
     #[test]
-    fn precision_recall_test2(){
+    fn precision_recall_test2() {
         let gold = vec![String::from("erotica"), String::from("detective")];
         let pred = vec![String::from("erotica"), String::from("erotica")];
         assert_eq!(precision(&gold, &pred, String::from("erotica")), 0.5);
@@ -129,7 +142,7 @@ mod tests {
 
     #[test]
     #[should_panic] // vectors should have the same length
-    fn precision_recall_test3(){
+    fn precision_recall_test3() {
         let gold = vec![String::from("erotica")];
         let pred = vec![String::from("erotica"), String::from("erotica")];
         assert_eq!(precision(&gold, &pred, String::from("erotica")), 0.5);
@@ -137,7 +150,7 @@ mod tests {
     }
 
     #[test]
-    fn f1_score_test1(){
+    fn f1_score_test1() {
         let precision = 0.2;
         let recall = 0.6;
         assert_eq!(f1_score(precision, recall), 0.3);
@@ -145,16 +158,24 @@ mod tests {
 
     #[test]
     #[should_panic] // neither precision nor recall may be negative
-    fn f1_score_test2(){
+    fn f1_score_test2() {
         let precision = 0.2;
         let recall = -0.6;
         assert_eq!(f1_score(precision, recall), 0.3);
     }
 
     #[test]
-    fn macro_averaged_evaluation_test(){
-        let gold = vec![String::from("detective"), String::from("detective"), String::from("horror")];
-        let pred = vec![String::from("detective"), String::from("horror"), String::from("horror")];
+    fn macro_averaged_evaluation_test() {
+        let gold = vec![
+            String::from("detective"),
+            String::from("detective"),
+            String::from("horror"),
+        ];
+        let pred = vec![
+            String::from("detective"),
+            String::from("horror"),
+            String::from("horror"),
+        ];
         assert_eq!(macro_averaged_evaluation(&gold, &pred), (0.75, 0.75, 0.75));
     }
 }
