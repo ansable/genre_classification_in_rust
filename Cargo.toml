@@ -7,6 +7,8 @@ authors = ["Marko Lozajic <marko.lozajic@student.uni-tuebingen.de>, Anna Sobolev
 clap = "2"
 lazy_static="1.1"
 la = "0.2.0"
+ndarray = "0.10"
+ndarray-linalg = { version = "0.8", features = ["openblas"] }
 ordered-float = "0.5"
 rusty-machine = "0.5"
 scanlex = "0.1"
