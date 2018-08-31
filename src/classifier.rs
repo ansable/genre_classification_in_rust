@@ -90,25 +90,19 @@ pub fn get_naive_bayes_predictions(
 
 #[cfg(test)]
 mod tests {
-    use super::matrix_to_vec;
+    use super::{matrix_to_vec, genre_labels_to_onehot};
 
     #[test]
-    fn matrix_to_vec_test() {
-        let a = vec![1, 2];
-        let b = vec![3, 4];
-        let test = vec![a, b];
-        assert_eq!(matrix_to_vec(test), vec![1, 2, 3, 4]);
+    fn matrix_to_vec_test(){
+        let a = vec![1.0,2.0];
+        let b = vec![3.0,4.0];
+        let test = vec![a,b];
+        assert_eq!(matrix_to_vec(test),(2 as usize,2 as usize,vec![1.0,2.0,3.0,4.0]));
     }
     #[test]
-    fn perform_la_svd_test() {
-        let A = vec![vec![1, 2], vec![3, 4], [5, 6]];
-        let s = vec![9.52551809, 0.51430058];
-        let v = vec![
-            vec![-0.61962948, -0.78489445],
-            vec![-0.78489445, 0.61962948],
-        ];
-        let svd = perform_la_svd(A);
-        assert_eq!(svd.get_s(), s);
-        assert_eq!(svd.get_v(), v);
+    fn genre_labels_to_onehot_test() {
+        let tmp = vec![String::from("detective"), String::from("erotica")];
+        let onehots = vec![vec![1.0, 0.0, 0.0, 0.0, 0.0], vec![0.0, 1.0, 0.0, 0.0, 0.0]];
+        assert_eq!(genre_labels_to_onehot(tmp), onehots);
     }
 }
