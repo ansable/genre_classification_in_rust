@@ -60,10 +60,11 @@ fn read_html_file(
             }
         }
     }
-    match training_mode {
-        true => Ok(get_word_counts_for_train_file(&text, filter_stopwords)),
-        false => Ok(get_word_counts_for_test_file(&text, filter_stopwords)),
-    }
+    Ok(get_word_counts_for_file(
+        &text,
+        filter_stopwords,
+        training_mode,
+    ))
 }
 
 // Takes text file (extracted from zip archive) as parameter, returns its contents as a vector of tokens
@@ -76,69 +77,18 @@ fn read_txt_file(
     file.read_to_string(&mut contents)
         .expect("Error encountered while processing file");
 
-    match training_mode {
-        true => Ok(get_word_counts_for_train_file(&contents, filter_stopwords)),
-        false => Ok(get_word_counts_for_test_file(&contents, filter_stopwords)),
-    }
+    Ok(get_word_counts_for_file(
+        &contents,
+        filter_stopwords,
+        training_mode,
+    ))
 }
 
-// Function to extract word tokens and counts from training text, building up the vocabulary along the way
-fn get_word_counts_for_train_file<'a>(
+// Function to extract word tokens and counts from file, optionally building up the vocabulary along the way (training_mode parameter)
+fn get_word_counts_for_file<'a>(
     text: &'a str,
     filter_stopwords: bool,
-) -> Vec<(std::string::String, usize)> {
-    let text = &str::replace(text, "'", " "); // scanlex crashes and burns upon encountering apostrophes
-
-    let mut scanner = scanlex::Scanner::new(&text);
-    let mut words_and_counts: Vec<(std::string::String, usize)> = vec![];
-    let mut vocab = VOCAB.lock().unwrap();
-
-    let stopwords: Vec<_> = Spark::stopwords(Language::English)
-        .unwrap()
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
-
-    loop {
-        let current_token = scanner.get();
-
-        if current_token.is_iden() {
-            // "iden" represents a word token
-            let current_word = &current_token.to_iden().unwrap().to_lowercase(); // lowercase to normalize text
-
-            if filter_stopwords {
-                if stopwords.contains(&current_word.to_string()) {
-                    continue;
-                }
-            }
-
-            if !vocab.contains(&current_word) {
-                vocab.push(current_word.to_string()); // if new word is encountered, add it to the vocabulary
-            }
-
-            match words_and_counts
-                    .iter()
-                    .position(|(x, _y)| x == &current_word.to_string()) // look for word within previously found words in file
-                {
-                    Some(p) => words_and_counts[p].1 += 1, // if previously seen, increment its count by 1
-                    None => words_and_counts.push((current_word.to_string(), 1)), // if new, add it to the vector and set its count to 1
-                }
-        } else if current_token.finished() {
-            // if we processed the last token, stop
-            break;
-        }
-    }
-    // sort vectors so that we can look for words in O(log n) time using binary search - important for calculating TF-IDF scores
-    vocab.sort_unstable();
-    words_and_counts.sort_unstable();
-    words_and_counts
-}
-
-// Function to extract word tokens and counts from training text, building up the vocabulary along the way
-// Essentially same functionality as "get_word_counts_for_train_file", but without adding words to the vocabulary
-fn get_word_counts_for_test_file<'a>(
-    text: &'a str,
-    filter_stopwords: bool,
+    training_mode: bool,
 ) -> Vec<(std::string::String, usize)> {
     let text = &str::replace(text, "'", " "); // scanlex crashes and burns upon encountering apostrophes
 
@@ -164,10 +114,15 @@ fn get_word_counts_for_test_file<'a>(
                 }
             }
 
-            if !vocab.contains(&current_word) {
-                continue;
+            if training_mode {
+                if !vocab.contains(&current_word) {
+                    vocab.push(current_word.to_string());
+                }
+            } else {
+                if !vocab.contains(&current_word) {
+                    continue;
+                }
             }
-
             match words_and_counts
                 .iter()
                 .position(|(x, _y)| x == &current_word.to_string())
