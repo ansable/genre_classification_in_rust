@@ -93,63 +93,39 @@ fn get_word_counts_for_train_file<'a>(
     let mut words_and_counts: Vec<(std::string::String, usize)> = vec![];
     let mut vocab = VOCAB.lock().unwrap();
 
-    if filter_stopwords {
-        let stopwords: Vec<_> = Spark::stopwords(Language::English)
-            .unwrap()
-            .iter()
-            .map(|s| s.to_string())
-            .collect();
+    let stopwords: Vec<_> = Spark::stopwords(Language::English)
+        .unwrap()
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
 
-        loop {
-            let current_token = scanner.get();
+    loop {
+        let current_token = scanner.get();
 
-            if current_token.is_iden() {
-                // "iden" represents a word token
-                let current_word = &current_token.to_iden().unwrap().to_lowercase(); // lowercase to normalize text
+        if current_token.is_iden() {
+            // "iden" represents a word token
+            let current_word = &current_token.to_iden().unwrap().to_lowercase(); // lowercase to normalize text
 
+            if filter_stopwords {
                 if stopwords.contains(&current_word.to_string()) {
                     continue;
                 }
+            }
 
-                if !vocab.contains(&current_word) {
-                    vocab.push(current_word.to_string()); // if new word is encountered, add it to the vocabulary
-                }
+            if !vocab.contains(&current_word) {
+                vocab.push(current_word.to_string()); // if new word is encountered, add it to the vocabulary
+            }
 
-                match words_and_counts
+            match words_and_counts
                     .iter()
                     .position(|(x, _y)| x == &current_word.to_string()) // look for word within previously found words in file
                 {
                     Some(p) => words_and_counts[p].1 += 1, // if previously seen, increment its count by 1
                     None => words_and_counts.push((current_word.to_string(), 1)), // if new, add it to the vector and set its count to 1
                 }
-            } else if current_token.finished() {
-                // if we processed the last token, stop
-                break;
-            }
-        }
-    } else {
-        // the loop is the same as above, except without the stopwords check
-        // the reason for copying the loop was to prevent unnecessary boolean checks (filter_stopwords) upon every iteration
-        loop {
-            let current_token = scanner.get();
-
-            if current_token.is_iden() {
-                let current_word = &current_token.to_iden().unwrap().to_lowercase();
-
-                if !vocab.contains(&current_word) {
-                    vocab.push(current_word.to_string());
-                }
-
-                match words_and_counts
-                    .iter()
-                    .position(|(x, _y)| x == &current_word.to_string())
-                {
-                    Some(p) => words_and_counts[p].1 += 1,
-                    None => words_and_counts.push((current_word.to_string(), 1)),
-                }
-            } else if current_token.finished() {
-                break;
-            }
+        } else if current_token.finished() {
+            // if we processed the last token, stop
+            break;
         }
     }
     // sort vectors so that we can look for words in O(log n) time using binary search - important for calculating TF-IDF scores
@@ -170,59 +146,37 @@ fn get_word_counts_for_test_file<'a>(
     let mut words_and_counts: Vec<(std::string::String, usize)> = vec![];
     let mut vocab = VOCAB.lock().unwrap();
 
-    if filter_stopwords {
-        let stopwords: Vec<_> = Spark::stopwords(Language::English)
-            .unwrap()
-            .iter()
-            .map(|s| s.to_string())
-            .collect();
+    let stopwords: Vec<_> = Spark::stopwords(Language::English)
+        .unwrap()
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
 
-        loop {
-            let current_token = scanner.get();
+    loop {
+        let current_token = scanner.get();
 
-            if current_token.is_iden() {
-                let current_word = &current_token.to_iden().unwrap().to_lowercase();
+        if current_token.is_iden() {
+            let current_word = &current_token.to_iden().unwrap().to_lowercase();
 
+            if filter_stopwords {
                 if stopwords.contains(&current_word.to_string()) {
                     continue;
                 }
-
-                if !vocab.contains(&current_word) {
-                    continue;
-                }
-
-                match words_and_counts
-                    .iter()
-                    .position(|(x, _y)| x == &current_word.to_string())
-                {
-                    Some(p) => words_and_counts[p].1 += 1,
-                    None => words_and_counts.push((current_word.to_string(), 1)),
-                }
-            } else if current_token.finished() {
-                break;
             }
-        }
-    } else {
-        loop {
-            let current_token = scanner.get();
 
-            if current_token.is_iden() {
-                let current_word = &current_token.to_iden().unwrap().to_lowercase();
-
-                if !vocab.contains(&current_word) {
-                    continue;
-                }
-
-                match words_and_counts
-                    .iter()
-                    .position(|(x, _y)| x == &current_word.to_string())
-                {
-                    Some(p) => words_and_counts[p].1 += 1,
-                    None => words_and_counts.push((current_word.to_string(), 1)),
-                }
-            } else if current_token.finished() {
-                break;
+            if !vocab.contains(&current_word) {
+                continue;
             }
+
+            match words_and_counts
+                .iter()
+                .position(|(x, _y)| x == &current_word.to_string())
+            {
+                Some(p) => words_and_counts[p].1 += 1,
+                None => words_and_counts.push((current_word.to_string(), 1)),
+            }
+        } else if current_token.finished() {
+            break;
         }
     }
     vocab.sort_unstable();
