@@ -6,6 +6,7 @@
 
 /// Module containing functions for cleaning input and passing raw word counts downstream.
 use std;
+use std::collections::HashMap;
 use std::io::Read;
 use std::sync::Mutex;
 
@@ -44,7 +45,7 @@ fn read_html_file(
     file: zip::read::ZipFile,
     filter_stopwords: bool,
     training_mode: bool,
-) -> Result<Vec<(std::string::String, usize)>, std::io::Error> {
+) -> Result<HashMap<std::string::String, usize>, std::io::Error> {
     let document = Document::from_read(file);
 
     let mut text = String::from(" ");
@@ -72,7 +73,7 @@ fn read_txt_file(
     mut file: zip::read::ZipFile,
     filter_stopwords: bool,
     training_mode: bool,
-) -> Result<Vec<(std::string::String, usize)>, std::io::Error> {
+) -> Result<HashMap<std::string::String, usize>, std::io::Error> {
     let mut contents = String::new();
     file.read_to_string(&mut contents)
         .expect("Error encountered while processing file");
@@ -89,11 +90,11 @@ fn get_word_counts_for_file<'a>(
     text: &'a str,
     filter_stopwords: bool,
     training_mode: bool,
-) -> Vec<(std::string::String, usize)> {
+) -> HashMap<std::string::String, usize> {
     let text = &str::replace(text, "'", " "); // scanlex crashes and burns upon encountering apostrophes
 
     let mut scanner = scanlex::Scanner::new(&text);
-    let mut words_and_counts: Vec<(std::string::String, usize)> = vec![];
+    let mut words_and_counts: HashMap<std::string::String, usize> = HashMap::new();
     let mut vocab = VOCAB.lock().unwrap();
 
     let stopwords: Vec<_> = Spark::stopwords(Language::English)
@@ -123,19 +124,16 @@ fn get_word_counts_for_file<'a>(
                     continue;
                 }
             }
-            match words_and_counts
-                .iter()
-                .position(|(x, _y)| x == &current_word.to_string())
-            {
-                Some(p) => words_and_counts[p].1 += 1,
-                None => words_and_counts.push((current_word.to_string(), 1)),
-            }
+
+            let count = words_and_counts
+                .entry(current_word.to_string())
+                .or_insert(0);
+            *count += 1;
         } else if current_token.finished() {
             break;
         }
     }
     vocab.sort_unstable();
-    words_and_counts.sort_unstable();
     words_and_counts
 }
 
@@ -144,7 +142,7 @@ pub fn preprocess_file(
     file: zip::read::ZipFile,
     filter_stopwords: bool,
     training_mode: bool,
-) -> Option<Vec<(std::string::String, usize)>> {
+) -> Option<HashMap<std::string::String, usize>> {
     let sanitized_name = file.sanitized_name();
     let filename = sanitized_name.to_str().unwrap();
     match type_of_file(filename) {

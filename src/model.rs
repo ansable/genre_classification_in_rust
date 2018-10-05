@@ -6,6 +6,7 @@
 
 /// Module for constructing document vector representations (term-document matrices)
 use std;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::time::SystemTime;
@@ -50,7 +51,7 @@ pub fn get_word_counts_for_corpus(
     filter_stopwords: bool,
     training_mode: bool,
 ) -> (
-    Vec<Vec<(std::string::String, usize)>>,
+    Vec<HashMap<std::string::String, usize>>,
     Vec<std::string::String>,
 ) {
     let zip_file = File::open(corpus_path).expect("Unable to read archive");
@@ -60,7 +61,7 @@ pub fn get_word_counts_for_corpus(
     let filenames_and_labels: Vec<(std::string::String, std::string::String)> =
         read_filenames_and_labels(labels_file);
 
-    let mut word_counts: Vec<Vec<(std::string::String, usize)>> = vec![];
+    let mut word_counts: Vec<HashMap<std::string::String, usize>> = vec![];
     let mut labels_ordered: Vec<std::string::String> = vec![];
 
     for i in 1..number_of_files {
@@ -108,7 +109,7 @@ pub fn get_word_counts_for_corpus(
 }
 
 // Computes TF-IDF vectors based on word counts across documents.
-pub fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<Vec<f64>> {
+pub fn get_tfdif_vectors(files: Vec<HashMap<std::string::String, usize>>) -> Vec<Vec<f64>> {
     let mut tfidf_vectors: Vec<Vec<f64>> = vec![];
     let mut word_idf_scores: Vec<f64> = vec![];
 
@@ -117,10 +118,10 @@ pub fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<V
     for word in vocab.iter() {
         let mut word_in_document_count = 0;
         for doc in files.iter() {
-            match doc.binary_search_by_key(&word, |&(ref w, _c)| w) {
+            match doc.contains_key(word) {
                 // if word found in document, increment document count
-                Ok(_) => word_in_document_count += 1,
-                Err(_) => continue,
+                true => word_in_document_count += 1,
+                false => continue,
             }
         }
 
@@ -135,7 +136,7 @@ pub fn get_tfdif_vectors(files: Vec<Vec<(std::string::String, usize)>>) -> Vec<V
         let mut tfidf_vector: Vec<f64> = vec![0f64; vocab.len()];
 
         let mut total_words = 0;
-        for (_word, count) in doc.iter() {
+        for count in doc.values() {
             total_words += count;
         }
 
