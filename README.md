@@ -1,13 +1,5 @@
-# Data:
-- 5 genres (romance, sci-fi, horror, erotica and detective), each approx of 100 texts. 
-- Sources: site archiveofourown (fanfiction) and texts from Project Gutenberg
-- Split into test and train set, so far approx 20/80
-- classifier (Naive Bayes gives some results, Logistic Regression / KNN could still be considered)
-- refactoring code / breaking up into smaller functions (stopwords could be a start)
-- commenting everything through
-- writing a one-page system description paper
+**Course:** Efficient Linear Algebra for Machine Learning (University of Tübingen, SS 2018, Dr. Daniël de Kok)
 
-# TODO:
+**Authors:** Anna Soboleva, Marko Ložajić
 
-- writing unit tests
-
+This Rust crate implements a simple Naive Bayes genre classifier. A more detailed system description can be found in the file *description.pdf*
