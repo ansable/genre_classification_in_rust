@@ -154,7 +154,9 @@ pub fn preprocess_file(
 
 #[cfg(test)]
 mod tests {
-    use super::{get_word_counts_for_train_file, type_of_file};
+    use super::{get_word_counts_for_file, type_of_file};
+    use std;
+    use std::collections::HashMap;
 
     #[test]
     fn type_of_file_test() {
@@ -164,19 +166,19 @@ mod tests {
     }
     #[test]
     fn get_word_counts_for_test_file_test() {
-        let vec1 = vec![
-            (String::from("a"), 2 as usize),
-            (String::from("bird"), 1 as usize),
-            (String::from("man"), 1 as usize),
-        ];
-        let vec2 = vec![
-            (String::from("dog"), 1 as usize),
-            (String::from("m"), 1 as usize),
-        ];
-        assert_eq!(get_word_counts_for_train_file("A bird, a man", false), vec1);
+        let mut map1: HashMap<std::string::String, usize> = HashMap::new();
+        map1.insert(String::from("a"), 2);
+        map1.insert(String::from("bird"), 1);
+        map1.insert(String::from("man"), 1);
+
+        let mut map2: HashMap<std::string::String, usize> = HashMap::new();
+        map2.insert(String::from("dog"), 1);
+        map2.insert(String::from("m"), 1);
+
+        assert_eq!(get_word_counts_for_file("A bird, a man", false, true), map1);
         assert_eq!(
-            get_word_counts_for_train_file("A a a a a a is dog I'm", true),
-            vec2
+            get_word_counts_for_file("A a a a a a is dog I'm", true, true),
+            map2
         );
     }
 
