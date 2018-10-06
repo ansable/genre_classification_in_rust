@@ -6,4 +6,4 @@ This Rust crate naively implements a simple Naive Bayes genre classifier. A more
 
 **The side note:** this is a work in progress awaiting for additionts and improvements. As an example of possible improvement you probably will find a cold half unfinished attempt to do SVD, which one day will be definitely finished.
 
-**And the second important side note:** Corpora which we used for our analysis was manually collected from the Project Gutenberg website (to which we are extremely grateful) and a fanfiction website https://archiveofourown.org/ (endless love to it too). 
+**And the second important side note:** Corpus which we used for our analysis was manually collected from the Project Gutenberg website (to which we are extremely grateful) and a fanfiction website https://archiveofourown.org/ (endless love to it too). 
