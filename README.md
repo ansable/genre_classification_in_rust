@@ -2,4 +2,4 @@
 
 **Authors:** Anna Soboleva, Marko Ložajić
 
-This Rust crate <naively> implements a simple Naive Bayes genre classifier. A more detailed system description can be found in the file *description.pdf*
+This Rust crate naively implements a simple Naive Bayes genre classifier. A more detailed system description can be found in the file *description.pdf*
